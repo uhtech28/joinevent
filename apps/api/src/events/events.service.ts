@@ -588,7 +588,14 @@ export class EventsService {
   // ============================================================
   async submit(userId: string, id: string): Promise<{ status: string }> {
     await this.assertOwnership(userId, id);
-    const nextStatus = process.env.NODE_ENV === 'production' ? 'pending_verification' : 'live';
+    // Auto-approve in dev OR when PREVIEW_MODE is on (client-preview deploys
+    // don't have a human admin clicking approve, so newly-submitted events
+    // would otherwise sit in pending_verification forever and never appear
+    // on the public Browse Events list).
+    const autoApprove =
+      process.env.NODE_ENV !== 'production' ||
+      process.env.PREVIEW_MODE === 'true';
+    const nextStatus = autoApprove ? 'live' : 'pending_verification';
     const event = await this.db.event.update({
       where: { id },
       data: { status: nextStatus },
