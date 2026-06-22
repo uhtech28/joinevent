@@ -93,6 +93,16 @@ const envSchema = z.object({
     .enum(['true', 'false'])
     .default('false')
     .transform((s) => s === 'true'),
+
+  // Preview / client-testing mode.
+  // When 'true' (and NODE_ENV is production), the strict production guards
+  // below are skipped — useful for hosting a client-preview build on Render
+  // / Railway / Fly with stubbed SMS / payments / Sentry. Never set this on
+  // a real public deploy.
+  PREVIEW_MODE: z
+    .enum(['true', 'false'])
+    .default('false')
+    .transform((s) => s === 'true'),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -116,7 +126,8 @@ export function loadEnv(): Env {
   const env = parsed.data;
 
   // Production safety checks — fail loudly, not silently.
-  if (env.NODE_ENV === 'production') {
+  // PREVIEW_MODE=true bypasses these (client-testing on Render/Railway/Fly).
+  if (env.NODE_ENV === 'production' && !env.PREVIEW_MODE) {
     const errors: string[] = [];
     if (env.OTP_RETURN_IN_RESPONSE) errors.push('OTP_RETURN_IN_RESPONSE must be false in production');
     if (env.SMS_PROVIDER === 'stub') errors.push('SMS_PROVIDER must be a real provider in production');
@@ -141,6 +152,11 @@ export function loadEnv(): Env {
       console.error('❌ Refusing to boot in production:\n  - ' + errors.join('\n  - '));
       process.exit(1);
     }
+  } else if (env.NODE_ENV === 'production' && env.PREVIEW_MODE) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      '⚠  PREVIEW_MODE=true — production safety guards skipped. Use only for client preview.',
+    );
   }
 
   cached = env;
