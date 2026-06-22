@@ -33,27 +33,34 @@ RUN pnpm --filter @joinevents/api exec prisma generate
 RUN pnpm --filter @joinevents/api build
 
 # ----------------------------------------------------------------
-# Stage 3: runtime — only what's needed to run
+# Stage 3: runtime — preserve the pnpm workspace layout so symlinks resolve
 # ----------------------------------------------------------------
+# pnpm puts the actual package files in /app/node_modules/.pnpm/ and creates
+# symlinks like /app/apps/api/node_modules/reflect-metadata → ../../../node_modules/.pnpm/…
+# If we copy only apps/api/node_modules the symlinks dangle and Node throws
+# "Cannot find module 'reflect-metadata'". Copying the whole /app preserves
+# the layout. Final image stays ~250MB which is fine for free tier.
 FROM node:20.18.0-alpine AS runtime
 WORKDIR /app
 
 # Non-root user
 RUN addgroup -g 1001 nodejs && adduser -S api -u 1001 -G nodejs
-USER api
 
-# Production-only node_modules + compiled output + Prisma schema (for migrations)
-COPY --from=build --chown=api:nodejs /app/apps/api/dist ./dist
-COPY --from=build --chown=api:nodejs /app/apps/api/node_modules ./node_modules
-COPY --from=build --chown=api:nodejs /app/apps/api/prisma ./prisma
-COPY --from=build --chown=api:nodejs /app/apps/api/package.json ./package.json
+# Copy the entire workspace: root node_modules (.pnpm virtual store) + the api app.
+# Symlinks inside apps/api/node_modules then resolve correctly to /app/node_modules.
+COPY --from=build --chown=api:nodejs /app/node_modules ./node_modules
+COPY --from=build --chown=api:nodejs /app/apps/api ./apps/api
+
+USER api
+WORKDIR /app/apps/api
 
 ENV NODE_ENV=production
 ENV PORT=4000
 EXPOSE 4000
 
-# Healthcheck — the orchestrator should hit /health every 30s
+# Healthcheck — Render's health check path is configured in the dashboard; this
+# is just for `docker compose` / Caddy-fronted deploys.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-  CMD wget --quiet --tries=1 --spider http://localhost:4000/api/v1/health || exit 1
+  CMD wget --quiet --tries=1 --spider http://localhost:4000/api/v1/health/live || exit 1
 
 CMD ["node", "dist/main.js"]
