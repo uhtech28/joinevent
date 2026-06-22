@@ -1,10 +1,10 @@
-// Pluggable file storage. Local disk in dev; Cloudflare R2 / AWS S3 in prod.
-// One interface — drop-in switch via STORAGE_DRIVER env var.
+// Pluggable file storage. Local disk in dev; Cloudflare R2 / AWS S3 / Cloudinary
+// in prod. One interface — drop-in switch via STORAGE_DRIVER env var.
 
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { promises as fs } from 'fs';
 import { join, dirname } from 'path';
-import { randomBytes } from 'crypto';
+import { randomBytes, createHash } from 'crypto';
 import { loadEnv } from '../env';
 
 export interface PutResult {
@@ -35,6 +35,20 @@ export class StorageService implements OnModuleInit, StorageDriver {
     if (env.STORAGE_DRIVER === 'r2' || env.STORAGE_DRIVER === 's3') {
       this.driver = await S3Driver.create(env.STORAGE_DRIVER);
       this.log.log(`Storage: ${env.STORAGE_DRIVER} (${env.STORAGE_R2_BUCKET})`);
+      return;
+    }
+    if (env.STORAGE_DRIVER === 'cloudinary') {
+      if (!env.CLOUDINARY_CLOUD_NAME || !env.CLOUDINARY_API_KEY || !env.CLOUDINARY_API_SECRET) {
+        throw new Error(
+          'STORAGE_DRIVER=cloudinary requires CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET',
+        );
+      }
+      this.driver = new CloudinaryDriver(
+        env.CLOUDINARY_CLOUD_NAME,
+        env.CLOUDINARY_API_KEY,
+        env.CLOUDINARY_API_SECRET,
+      );
+      this.log.log(`Storage: cloudinary (${env.CLOUDINARY_CLOUD_NAME})`);
       return;
     }
     throw new Error(`Unknown STORAGE_DRIVER`);
@@ -154,5 +168,104 @@ class S3Driver implements StorageDriver {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { DeleteObjectCommand } = require('@aws-sdk/client-s3');
     await this.client.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+  }
+}
+
+// ------------------------------------------------------------
+// Cloudinary driver — uses Cloudinary's signed upload REST API directly.
+// No npm SDK dependency: we sign with built-in crypto and POST via fetch.
+//
+// Cost: free tier ships with 25 monthly "credits" (≈25GB storage + bandwidth
+// + transformations combined). Plenty for client preview and small launches.
+//
+// Setup:
+//   1. Sign up at https://cloudinary.com (no credit card needed).
+//   2. Dashboard shows cloud_name + api_key + api_secret.
+//   3. Set on Render API service env:
+//        STORAGE_DRIVER=cloudinary
+//        CLOUDINARY_CLOUD_NAME=<your-cloud-name>
+//        CLOUDINARY_API_KEY=<your-api-key>
+//        CLOUDINARY_API_SECRET=<your-api-secret>
+//   4. Redeploy. New uploads land on Cloudinary's CDN and persist forever.
+// ------------------------------------------------------------
+class CloudinaryDriver implements StorageDriver {
+  constructor(
+    private readonly cloudName: string,
+    private readonly apiKey: string,
+    private readonly apiSecret: string,
+  ) {}
+
+  async put(key: string, body: Buffer, contentType: string): Promise<PutResult> {
+    // Cloudinary uses its own public_id (we map our `key` to that). Strip the
+    // file extension because Cloudinary derives it from the upload payload.
+    const publicId = key.replace(/\.[a-zA-Z0-9]+$/, '');
+    const timestamp = Math.floor(Date.now() / 1000);
+
+    // Build the signature: sort params alphabetically, join as k=v&k=v,
+    // append api_secret, sha1.
+    const paramsToSign: Record<string, string | number> = {
+      public_id: publicId,
+      timestamp,
+    };
+    const signature = createHash('sha1')
+      .update(
+        Object.keys(paramsToSign)
+          .sort()
+          .map((k) => `${k}=${paramsToSign[k]}`)
+          .join('&') + this.apiSecret,
+      )
+      .digest('hex');
+
+    // Build multipart body. Cloudinary accepts the file as a Blob in the
+    // 'file' field. Node 20's global fetch + FormData handle this natively.
+    const form = new FormData();
+    form.set('file', new Blob([body], { type: contentType }));
+    form.set('public_id', publicId);
+    form.set('api_key', this.apiKey);
+    form.set('timestamp', String(timestamp));
+    form.set('signature', signature);
+
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${this.cloudName}/auto/upload`,
+      { method: 'POST', body: form },
+    );
+    if (!res.ok) {
+      const text = await res.text().catch(() => '');
+      throw new Error(`Cloudinary upload failed (${res.status}): ${text}`);
+    }
+    const json = (await res.json()) as { secure_url: string; bytes: number; public_id: string };
+    return { key: json.public_id, url: json.secure_url, bytes: json.bytes };
+  }
+
+  async get(_key: string): Promise<Buffer> {
+    // Cloudinary serves files directly from its CDN, so the API never needs
+    // to proxy a GET. This method exists only for the StorageDriver contract.
+    throw new Error(
+      'Cloudinary URLs are public — fetch directly from the secure_url instead of via the storage service.',
+    );
+  }
+
+  url(publicId: string): string {
+    // Plain delivery URL. New uploads return the full secure_url from put(),
+    // so this is only used if something stores just the public_id.
+    return `https://res.cloudinary.com/${this.cloudName}/image/upload/${publicId}`;
+  }
+
+  async delete(publicId: string): Promise<void> {
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = createHash('sha1')
+      .update(`public_id=${publicId}&timestamp=${timestamp}${this.apiSecret}`)
+      .digest('hex');
+    const form = new FormData();
+    form.set('public_id', publicId);
+    form.set('api_key', this.apiKey);
+    form.set('timestamp', String(timestamp));
+    form.set('signature', signature);
+    await fetch(
+      `https://api.cloudinary.com/v1_1/${this.cloudName}/image/destroy`,
+      { method: 'POST', body: form },
+    ).catch(() => {
+      /* best-effort */
+    });
   }
 }

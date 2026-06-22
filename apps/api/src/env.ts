@@ -72,13 +72,18 @@ const envSchema = z.object({
   PAYU_WEBHOOK_SECRET: z.string().optional(),
 
   // Storage (file uploads — KYC, cover images)
-  STORAGE_DRIVER: z.enum(['local', 'r2', 's3']).default('local'),
+  STORAGE_DRIVER: z.enum(['local', 'r2', 's3', 'cloudinary']).default('local'),
   STORAGE_LOCAL_DIR: z.string().default('./uploads'),
   STORAGE_R2_ACCOUNT_ID: z.string().optional(),
   STORAGE_R2_BUCKET: z.string().optional(),
   STORAGE_R2_ACCESS_KEY: z.string().optional(),
   STORAGE_R2_SECRET_KEY: z.string().optional(),
   STORAGE_R2_PUBLIC_URL: z.string().url().optional(),
+  // Cloudinary — used when STORAGE_DRIVER=cloudinary. Sign up free at
+  // https://cloudinary.com — these three values are on the dashboard.
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 
   // Observability
   SENTRY_DSN: z.string().url().optional(),
