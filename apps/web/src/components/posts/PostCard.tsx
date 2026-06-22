@@ -78,9 +78,7 @@ export function PostCard({
   async function share() {
     const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/org/${post.profile.username}`;
     try {
-      // @ts-expect-error Web Share API not in lib types
       if (navigator.share) {
-        // @ts-expect-error Web Share API not in lib types
         await navigator.share({ title: post.profile.displayName, text: post.content, url });
         return;
       }
