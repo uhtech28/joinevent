@@ -374,7 +374,6 @@ function EventCard({ event }: { event: OwnerEvent }) {
     event.stalls.available > 0
       ? Math.round((event.stalls.booked / event.stalls.available) * 100)
       : 0;
-  const isPast = new Date(event.endsAt).getTime() < Date.now();
   const estRevenue =
     event.stalls.booked > 0 && event.stalls.priceFromPaise
       ? (event.stalls.booked * event.stalls.priceFromPaise) / 100
@@ -401,9 +400,15 @@ function EventCard({ event }: { event: OwnerEvent }) {
           <div className="text-lg font-extrabold leading-none">{day}</div>
           <div className="text-[10px] font-bold tracking-wider text-brand-purple">{month}</div>
         </div>
-        {/* Status pill */}
+        {/* Status pill — lifecycle aware (UPCOMING / LIVE NOW / ENDED) for
+            published events, workflow state (DRAFT / PENDING / CANCELLED) for
+            anything else. */}
         <div className="absolute right-3 top-3">
-          <EventStatusPill status={event.status} isPast={isPast} />
+          <EventStatusPill
+            status={event.status}
+            startsAt={event.startsAt}
+            endsAt={event.endsAt}
+          />
         </div>
         {/* Featured badge */}
         {event.isFeatured && (
@@ -483,25 +488,63 @@ function Stat({ label, value, color }: { label: string; value: string; color: st
   );
 }
 
-function EventStatusPill({ status, isPast }: { status: string; isPast: boolean }) {
-  if (isPast && status !== 'cancelled') {
+function EventStatusPill({
+  status,
+  startsAt,
+  endsAt,
+}: {
+  status: string;
+  startsAt: string;
+  endsAt: string;
+}) {
+  type Pill = { bg: string; text: string; label: string; dot?: string };
+
+  // Workflow states (draft / pending_verification / cancelled) always win —
+  // they describe whether the event is allowed to be shown publicly at all,
+  // independent of its scheduled dates.
+  const workflow: Record<string, Pill> = {
+    draft: { bg: 'bg-cream-300/95', text: 'text-ink-500', label: 'Draft', dot: 'bg-ink-400' },
+    pending_verification: { bg: 'bg-amber-100/95', text: 'text-amber-700', label: 'Pending', dot: 'bg-amber-500' },
+    cancelled: { bg: 'bg-rose-100/95', text: 'text-rose-700', label: 'Cancelled', dot: 'bg-rose-500' },
+  };
+  if (workflow[status]) {
+    const p = workflow[status];
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-cream-300/95 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-ink-500 backdrop-blur">
-        Past
+      <span className={`inline-flex items-center gap-1.5 rounded-full ${p.bg} px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${p.text} backdrop-blur`}>
+        {p.dot && <span className={`h-1.5 w-1.5 rounded-full ${p.dot}`} />}
+        {p.label}
       </span>
     );
   }
-  const map: Record<string, { bg: string; text: string; label: string; dot?: string }> = {
-    live: { bg: 'bg-emerald-100/95', text: 'text-emerald-700', label: 'Live', dot: 'bg-emerald-500' },
-    pending_verification: { bg: 'bg-amber-100/95', text: 'text-amber-700', label: 'Pending', dot: 'bg-amber-500' },
-    draft: { bg: 'bg-cream-300/95', text: 'text-ink-500', label: 'Draft', dot: 'bg-ink-400' },
-    cancelled: { bg: 'bg-rose-100/95', text: 'text-rose-700', label: 'Cancelled', dot: 'bg-rose-500' },
-  };
-  const s = map[status] ?? { bg: 'bg-cream-200/95', text: 'text-ink-500', label: status };
+
+  // For 'live' (i.e. published) events, derive the badge from the schedule.
+  // "Live" in the DB sense just means "published"; what the organiser actually
+  // wants to see is whether the event hasn't started, is happening now, or is
+  // already over — same vocabulary used on the public Browse Events page.
+  if (status === 'live') {
+    const now = Date.now();
+    const start = new Date(startsAt).getTime();
+    const end = new Date(endsAt).getTime();
+    let pill: Pill;
+    if (end < now) {
+      pill = { bg: 'bg-cream-300/95', text: 'text-ink-500', label: 'Ended', dot: 'bg-ink-400' };
+    } else if (start <= now && now <= end) {
+      pill = { bg: 'bg-emerald-100/95', text: 'text-emerald-700', label: 'Live now', dot: 'bg-emerald-500' };
+    } else {
+      pill = { bg: 'bg-brand-purple/10', text: 'text-brand-purple', label: 'Upcoming', dot: 'bg-brand-purple' };
+    }
+    return (
+      <span className={`inline-flex items-center gap-1.5 rounded-full ${pill.bg} px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${pill.text} backdrop-blur`}>
+        {pill.dot && <span className={`h-1.5 w-1.5 rounded-full ${pill.dot} ${pill.label === 'Live now' ? 'animate-pulse' : ''}`} />}
+        {pill.label}
+      </span>
+    );
+  }
+
+  // Unknown status — render verbatim.
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full ${s.bg} px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider ${s.text} backdrop-blur`}>
-      {s.dot && <span className={`h-1.5 w-1.5 rounded-full ${s.dot}`} />}
-      {s.label}
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-cream-200/95 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider text-ink-500 backdrop-blur">
+      {status}
     </span>
   );
 }
