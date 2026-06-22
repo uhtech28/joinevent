@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ==========================================================
+   Cross-platform base — iOS, Android, desktop
+   ========================================================== */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%; /* stop iOS landscape zoom */
+    text-size-adjust: 100%;
+  }
+  body {
+    background:
+      radial-gradient(circle at top left, rgba(255, 122, 89, 0.22), transparent 32%),
+      radial-gradient(circle at top right, rgba(255, 196, 87, 0.22), transparent 28%),
+      radial-gradient(circle at bottom left, rgba(77, 178, 255, 0.14), transparent 34%),
+      #fff8f0;
+    background-attachment: fixed;
+    -webkit-tap-highlight-color: transparent; /* kill iOS tap flash */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden; /* belt-and-braces against horizontal scroll */
+  }
+
+  /* iOS zooms into inputs whose effective font-size is < 16px. Force ≥ 16px
+     on small screens; larger screens can still down-size via class overrides. */
+  @media (max-width: 640px) {
+    input,
+    textarea,
+    select {
+      font-size: 16px !important;
+    }
+  }
+
+  /* Default tap target: anything interactive should hit 44×44 on touch. */
+  button,
+  a,
+  [role='button'] {
+    touch-action: manipulation; /* removes 300ms tap delay on iOS */
+  }
+}
+
+/* Soft blurred blob that sits behind the hero. */
+.decorative-blob {
+  position: fixed;
+  width: 420px;
+  height: 420px;
+  background: linear-gradient(135deg, #ff7a59, #ffcb57);
+  filter: blur(90px);
+  opacity: 0.25;
+  border-radius: 50%;
+  right: -120px;
+  top: 180px;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Hide ugly horizontal scrollbar on tag-row but keep it scrollable. */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Common button styles — used widely on the landing page. */
+@layer components {
+  .btn {
+    @apply inline-flex min-h-[44px] items-center justify-center rounded-2xl px-6 py-3 text-base font-bold transition;
+  }
+  .btn-primary {
+    @apply bg-brand-gradient text-white shadow-brand hover:-translate-y-0.5 hover:shadow-brand-lg;
+  }
+  .btn-secondary {
+    @apply border border-black/10 bg-white text-ink-600 shadow-[0_10px_25px_rgba(0,0,0,0.05)];
+  }
+  .btn-secondary-light {
+    @apply bg-white text-brand-orange shadow-[0_10px_25px_rgba(0,0,0,0.05)];
+  }
+}
+
+/* ==========================================================
+   Utility helpers
+   ========================================================== */
+@layer utilities {
+  /* Use modern viewport units that account for mobile browser UI bars.
+     dvh = dynamic viewport height (resizes as toolbar shows/hides).
+     svh = small viewport height (always toolbar-visible). */
+  .min-h-dvh {
+    min-height: 100vh; /* fallback */
+    min-height: 100dvh;
+  }
+  .h-dvh {
+    height: 100vh;
+    height: 100dvh;
+  }
+
+  /* iOS notch / Android gesture-bar awareness */
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}

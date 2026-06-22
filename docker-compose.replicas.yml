@@ -1,0 +1,92 @@
+# Read-replica overlay for local development.
+#
+# Brings up the primary postgres with WAL streaming + 2 read replicas.
+# Use:
+#   docker compose -f docker-compose.yml -f docker-compose.replicas.yml up -d
+#
+# Connection strings:
+#   primary  -> postgresql://joinevents:joinevents_dev_password@localhost:5432/joinevents
+#   replica1 -> postgresql://joinevents:joinevents_dev_password@localhost:5433/joinevents
+#   replica2 -> postgresql://joinevents:joinevents_dev_password@localhost:5434/joinevents
+#
+# Set DATABASE_URL_READ_1/_2 in apps/api/.env to enable read/write split.
+
+services:
+  postgres:
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=replica"
+      - "-c"
+      - "max_wal_senders=10"
+      - "-c"
+      - "max_replication_slots=10"
+      - "-c"
+      - "hot_standby=on"
+      - "-c"
+      - "wal_keep_size=128"
+      - "-c"
+      - "hba_file=/etc/postgresql/pg_hba.conf"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./infra/postgres/replica/setup-primary.sh:/docker-entrypoint-initdb.d/02-replication.sh:ro
+      - ./infra/postgres/replica/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+
+  postgres-replica1:
+    image: postgis/postgis:16-3.4
+    container_name: joinevents-postgres-replica1
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: joinevents
+      POSTGRES_PASSWORD: joinevents_dev_password
+      POSTGRES_DB: joinevents
+      PRIMARY_HOST: postgres
+      SLOT_NAME: replica1_slot
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - '5433:5432'
+    volumes:
+      - postgres-replica1-data:/var/lib/postgresql/data
+      - ./infra/postgres/replica/setup-replica.sh:/usr/local/bin/setup-replica.sh:ro
+    entrypoint: ["/bin/bash", "/usr/local/bin/setup-replica.sh"]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U joinevents -d joinevents']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  postgres-replica2:
+    image: postgis/postgis:16-3.4
+    container_name: joinevents-postgres-replica2
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_USER: joinevents
+      POSTGRES_PASSWORD: joinevents_dev_password
+      POSTGRES_DB: joinevents
+      PRIMARY_HOST: postgres
+      SLOT_NAME: replica2_slot
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - '5434:5432'
+    volumes:
+      - postgres-replica2-data:/var/lib/postgresql/data
+      - ./infra/postgres/replica/setup-replica.sh:/usr/local/bin/setup-replica.sh:ro
+    entrypoint: ["/bin/bash", "/usr/local/bin/setup-replica.sh"]
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U joinevents -d joinevents']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+volumes:
+  postgres-replica1-data:
+    name: joinevents-postgres-replica1-data
+  postgres-replica2-data:
+    name: joinevents-postgres-replica2-data

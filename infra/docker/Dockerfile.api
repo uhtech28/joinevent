@@ -1,0 +1,55 @@
+# Multi-stage build for the NestJS API.
+# Final image: distroless-ish (node:20-alpine), non-root, ~150MB.
+
+# ----------------------------------------------------------------
+# Stage 1: deps — install with pnpm (cached layer)
+# ----------------------------------------------------------------
+FROM node:20.18.0-alpine AS deps
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
+
+COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
+COPY apps/api/package.json apps/api/
+COPY apps/web/package.json apps/web/
+
+RUN pnpm install --frozen-lockfile --filter @joinevents/api...
+
+# ----------------------------------------------------------------
+# Stage 2: build — compile TS, generate Prisma client
+# ----------------------------------------------------------------
+FROM node:20.18.0-alpine AS build
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/api/node_modules ./apps/api/node_modules
+COPY . .
+
+RUN pnpm --filter @joinevents/api exec prisma generate
+RUN pnpm --filter @joinevents/api build
+
+# ----------------------------------------------------------------
+# Stage 3: runtime — only what's needed to run
+# ----------------------------------------------------------------
+FROM node:20.18.0-alpine AS runtime
+WORKDIR /app
+
+# Non-root user
+RUN addgroup -g 1001 nodejs && adduser -S api -u 1001 -G nodejs
+USER api
+
+# Production-only node_modules + compiled output + Prisma schema (for migrations)
+COPY --from=build --chown=api:nodejs /app/apps/api/dist ./dist
+COPY --from=build --chown=api:nodejs /app/apps/api/node_modules ./node_modules
+COPY --from=build --chown=api:nodejs /app/apps/api/prisma ./prisma
+COPY --from=build --chown=api:nodejs /app/apps/api/package.json ./package.json
+
+ENV NODE_ENV=production
+ENV PORT=4000
+EXPOSE 4000
+
+# Healthcheck — the orchestrator should hit /health every 30s
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:4000/api/v1/health || exit 1
+
+CMD ["node", "dist/main.js"]

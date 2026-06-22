@@ -1,0 +1,30 @@
+{
+  "expo": {
+    "name": "Join Events",
+    "slug": "joinevents",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "joinevents",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FFF8F0"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "in.joinevents.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#FFF8F0"
+      },
+      "package": "in.joinevents.app"
+    },
+    "extra": {
+      "apiUrl": "http://192.168.1.100:4000/api/v1"
+    }
+  }
+}

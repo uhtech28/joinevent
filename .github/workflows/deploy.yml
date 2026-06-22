@@ -1,0 +1,73 @@
+# Deploy to production.
+# Triggered manually OR on push to main after CI passes.
+# Requires GH secrets: DEPLOY_HOST, DEPLOY_USER, DEPLOY_SSH_KEY, DEPLOY_PATH.
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      env:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+
+jobs:
+  deploy:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.env || 'staging' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build + push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./infra/docker/Dockerfile.api
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/api:latest
+            ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Build + push Web image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./infra/docker/Dockerfile.web
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/web:latest
+            ghcr.io/${{ github.repository }}/web:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Pull + restart on host
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            cd ${{ secrets.DEPLOY_PATH }}
+            docker compose -f docker-compose.prod.yml pull
+            docker compose -f docker-compose.prod.yml up -d
+            docker compose -f docker-compose.prod.yml exec -T api npx prisma migrate deploy

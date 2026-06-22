@@ -1,0 +1,37 @@
+{
+  "name": "joinevents",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Join Events — hyperlocal event & stall discovery platform",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter @joinevents/web --filter @joinevents/api dev",
+    "dev:web": "pnpm --filter @joinevents/web dev",
+    "dev:api": "pnpm --filter @joinevents/api dev",
+    "build": "pnpm --filter @joinevents/web --filter @joinevents/api build",
+    "lint": "pnpm --filter @joinevents/web --filter @joinevents/api lint",
+    "typecheck": "pnpm --filter @joinevents/web --filter @joinevents/api typecheck",
+    "db:up": "docker compose up -d postgres redis",
+    "db:up:full": "docker compose up -d",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "db:reset": "docker compose down -v && docker compose up -d postgres redis",
+    "db:migrate": "pnpm --filter @joinevents/api prisma:migrate",
+    "db:seed": "pnpm --filter @joinevents/api prisma:seed",
+    "db:setup": "pnpm db:migrate && pnpm db:seed",
+    "db:studio": "pnpm --filter @joinevents/api prisma:studio",
+    "replicas:up": "docker compose -f docker-compose.yml -f docker-compose.replicas.yml up -d",
+    "replicas:down": "docker compose -f docker-compose.yml -f docker-compose.replicas.yml down",
+    "mobile:start": "pnpm --filter @joinevents/mobile start",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\""
+  },
+  "devDependencies": {
+    "prettier": "^3.3.3",
+    "prettier-plugin-tailwindcss": "^0.6.8"
+  }
+}

@@ -1,0 +1,71 @@
+# Join Events — local development services
+# Run:    docker compose up -d
+# Stop:   docker compose down
+# Reset:  docker compose down -v   (deletes data — use with care)
+
+services:
+  postgres:
+    # PostGIS image = Postgres 16 with PostGIS extension preinstalled.
+    image: postgis/postgis:16-3.4
+    container_name: joinevents-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-joinevents}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-joinevents_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-joinevents}
+    ports:
+      - '${POSTGRES_PORT:-5432}:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      # init.sql runs on first startup only — enables extensions
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: joinevents-redis
+    restart: unless-stopped
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Meilisearch — fast typo-tolerant search. We use it once event count > 100.
+  # Postgres FTS still works as a fallback if you leave MEILI_HOST blank.
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    container_name: joinevents-meili
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-meili-dev-master-key-change-me}
+      MEILI_ENV: ${MEILI_ENV:-development}
+    ports:
+      - '${MEILI_PORT:-7700}:7700'
+    volumes:
+      - meili-data:/meili_data
+    healthcheck:
+      # Meilisearch ships its own /health endpoint; we just curl it (curl
+      # is in the official image, wget is not).
+      test:
+        - 'CMD-SHELL'
+        - 'curl -fsS http://localhost:7700/health || exit 1'
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  postgres-data:
+    name: joinevents-postgres-data
+  redis-data:
+    name: joinevents-redis-data
+  meili-data:
+    name: joinevents-meili-data

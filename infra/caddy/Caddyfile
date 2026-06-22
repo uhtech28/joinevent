@@ -1,0 +1,41 @@
+# Caddy reverse proxy with automatic HTTPS.
+# {$DOMAIN} is interpolated from the env at container start. Set DOMAIN in
+# .env.production (e.g. DOMAIN=demo.joinevents.in). Add the www. variant
+# manually below if you want both apex and www to resolve.
+
+{$DOMAIN} {
+  encode gzip zstd
+
+  # API routes
+  handle /api/* {
+    reverse_proxy api:4000
+  }
+
+  # Health probe
+  handle /healthz {
+    reverse_proxy api:4000
+  }
+
+  # Everything else → Next.js
+  handle {
+    reverse_proxy web:3000
+  }
+
+  # Security headers (extra layer beyond Helmet)
+  header {
+    Strict-Transport-Security "max-age=63072000; includeSubDomains; preload"
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "SAMEORIGIN"
+    Referrer-Policy "strict-origin-when-cross-origin"
+    Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+    -Server
+  }
+
+  log {
+    output file /data/access.log {
+      roll_size 100mb
+      roll_keep 5
+    }
+    format json
+  }
+}

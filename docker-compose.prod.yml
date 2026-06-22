@@ -1,0 +1,126 @@
+# Production compose — assumes you've built images via the deploy workflow
+# and pulled them into the box. For self-hosted deploys.
+# For Managed Postgres + Render/Fly, point env vars at those URLs instead.
+
+services:
+  api:
+    image: ghcr.io/joinevents/api:${IMAGE_TAG:-latest}
+    container_name: joinevents-api
+    restart: unless-stopped
+    env_file: .env.production
+    ports:
+      - '127.0.0.1:4000:4000'  # behind nginx/traefik
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  web:
+    image: ghcr.io/joinevents/web:${IMAGE_TAG:-latest}
+    container_name: joinevents-web
+    restart: unless-stopped
+    env_file: .env.production
+    ports:
+      - '127.0.0.1:3000:3000'  # behind nginx/traefik
+    depends_on:
+      - api
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 768M
+
+  queue-worker:
+    # Dedicated worker process for Bull jobs. Same image as API; just runs a
+    # different command. Set QUEUE_DISABLED=false here even if API sets it true.
+    image: ghcr.io/joinevents/api:${IMAGE_TAG:-latest}
+    container_name: joinevents-queue
+    restart: unless-stopped
+    env_file: .env.production
+    environment:
+      QUEUE_DISABLED: 'false'
+      QUEUE_WORKER_ONLY: 'true'  # service can skip HTTP listen
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: joinevents-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./backups:/backups
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: joinevents-redis
+    restart: unless-stopped
+    command: ['redis-server', '--appendonly', 'yes', '--maxmemory', '256mb', '--maxmemory-policy', 'allkeys-lru']
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 10
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    container_name: joinevents-meili
+    restart: unless-stopped
+    environment:
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY}
+      MEILI_ENV: production
+    volumes:
+      - meili-data:/meili_data
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fsS http://localhost:7700/health || exit 1']
+      interval: 5s
+      retries: 10
+
+  caddy:
+    # Free HTTPS + reverse proxy. Replace with nginx if you prefer.
+    image: caddy:2-alpine
+    container_name: joinevents-caddy
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+      - web
+
+volumes:
+  postgres-data:
+  redis-data:
+  meili-data:
+  caddy-data:
+  caddy-config:

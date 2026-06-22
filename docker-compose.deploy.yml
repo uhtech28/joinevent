@@ -1,0 +1,115 @@
+# docker-compose.deploy.yml
+# ============================================================
+# Self-contained production stack. Builds images locally on the box so
+# you don't need a container registry. Run with:
+#
+#   docker compose -f docker-compose.deploy.yml up -d --build
+#
+# Caddy fronts the stack and handles HTTPS via Let's Encrypt. Postgres + Redis
+# are private to the docker network. Set values in `.env.production` first.
+# ============================================================
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.api
+    container_name: joinevents-api
+    restart: unless-stopped
+    env_file: .env.production
+    expose:
+      - '4000'
+    volumes:
+      # Persist locally-stored uploads (avatars, event covers, post images)
+      # across container rebuilds. Swap to R2/S3 when you're ready.
+      - api-storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - joinevents
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/docker/Dockerfile.web
+    container_name: joinevents-web
+    restart: unless-stopped
+    env_file: .env.production
+    expose:
+      - '3000'
+    depends_on:
+      - api
+    networks:
+      - joinevents
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: joinevents-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER}']
+      interval: 5s
+      retries: 10
+    networks:
+      - joinevents
+
+  redis:
+    image: redis:7-alpine
+    container_name: joinevents-redis
+    restart: unless-stopped
+    command:
+      - 'redis-server'
+      - '--appendonly'
+      - 'yes'
+      - '--maxmemory'
+      - '256mb'
+      - '--maxmemory-policy'
+      - 'allkeys-lru'
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      retries: 10
+    networks:
+      - joinevents
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: joinevents-caddy
+    restart: unless-stopped
+    environment:
+      # Read from .env.production so Caddyfile's {$DOMAIN} resolves.
+      DOMAIN: ${DOMAIN}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./infra/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      - api
+      - web
+    networks:
+      - joinevents
+
+networks:
+  joinevents:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  redis-data:
+  api-storage:
+  caddy-data:
+  caddy-config:

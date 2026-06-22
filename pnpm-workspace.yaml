@@ -1,0 +1,7 @@
+# The web + api workspaces share deps. Mobile (Expo) is intentionally NOT
+# in this workspace — React Native's peer deps + native bindings don't play
+# nicely with hoisted node_modules. Run `cd apps/mobile && pnpm install` there.
+packages:
+  - "apps/web"
+  - "apps/api"
+  - "packages/*"
