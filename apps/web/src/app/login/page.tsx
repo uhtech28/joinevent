@@ -1,6 +1,11 @@
 'use client';
 
-import { useEffect, useState, type FormEvent } from 'react';
+// Force dynamic rendering — this page uses useSearchParams() which Next.js 15
+// can't prerender statically. Auth pages don't benefit from static optimization
+// anyway since they're personalized per request.
+export const dynamic = 'force-dynamic';
+
+import { useEffect, useState, Suspense, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api, ApiError } from '@/lib/api';
