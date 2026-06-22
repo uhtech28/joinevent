@@ -961,6 +961,12 @@ export const api = {
         /* withAuth */ true,
       ),
     mine: () => call<OwnerEvent[]>('/events/mine', {}, /* withAuth */ true),
+    delete: (id: string) =>
+      call<{ ok: true }>(
+        `/events/${encodeURIComponent(id)}`,
+        { method: 'DELETE' },
+        /* withAuth */ true,
+      ),
   },
 
   wallet: {

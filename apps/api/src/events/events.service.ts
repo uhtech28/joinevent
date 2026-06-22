@@ -612,6 +612,44 @@ export class EventsService {
   }
 
   // ============================================================
+  // Delete — organiser-only. Refuses if any vendor bookings exist (money
+  // is in escrow). Cascades to stalls + reviews via Prisma onDelete; the
+  // event_applications rows are wiped manually because we kept that FK
+  // restrict so a dangling application can never silently disappear.
+  // ============================================================
+  async remove(userId: string, id: string): Promise<{ ok: true }> {
+    await this.assertOwnership(userId, id);
+
+    const stalls = await this.db.stall.findMany({
+      where: { eventId: id },
+      select: { id: true },
+    });
+    const stallIds = stalls.map((s) => s.id);
+    const bookingCount =
+      stallIds.length === 0
+        ? 0
+        : await this.db.booking.count({ where: { stallId: { in: stallIds } } });
+    if (bookingCount > 0) {
+      throw new BadRequestException({
+        code: 'has_bookings',
+        message:
+          'Cannot delete an event that has bookings. Cancel the bookings first.',
+      });
+    }
+
+    await this.db.$transaction([
+      this.db.eventApplication.deleteMany({ where: { eventId: id } }),
+      this.db.event.delete({ where: { id } }),
+    ]);
+
+    await Promise.all([
+      this.cache.invalidatePrefix('events:list:'),
+      this.cache.invalidatePrefix('events:discover:'),
+    ]);
+    return { ok: true };
+  }
+
+  // ============================================================
   // Detail
   // ============================================================
   async findBySlug(slug: string): Promise<PublicEvent> {

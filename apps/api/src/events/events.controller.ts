@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -99,5 +100,13 @@ export class EventsController {
   @HttpCode(200)
   submit(@CurrentUser() user: { id: string }, @Param('id') id: string) {
     return this.events.submit(user.id, id);
+  }
+
+  // DELETE /api/v1/events/:id — owner only. Refuses if any vendor has booked.
+  @UseGuards(JwtAuthGuard)
+  @Delete('events/:id')
+  @HttpCode(200)
+  remove(@CurrentUser() user: { id: string }, @Param('id') id: string) {
+    return this.events.remove(user.id, id);
   }
 }
