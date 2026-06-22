@@ -207,25 +207,42 @@ export default async function OrgPage({ params }: { params: Promise<Params> }) {
               <SocialLinksRow profile={profile} />
             </div>
 
-            {/* Stat tiles strip */}
-            <div className="mt-6 grid gap-3 sm:grid-cols-3">
-              <Stat
-                tint="bg-ribbon-pink/10 text-ribbon-pink"
+            {/* Compact stats strip — a single thin row of inline pills.
+                Replaces the previous three big cards that duplicated info
+                already shown in the FollowerPill and the rating line above.
+                The Verification pill is only rendered when verified — a
+                "Pending" badge is more noise than signal on a fresh profile. */}
+            <div className="mt-6 flex flex-wrap items-center gap-2">
+              <StatPill
                 icon="❤"
-                label="Followers"
-                value={profile.followersCount.toLocaleString('en-IN')}
+                tint="bg-rose-50 text-rose-600 ring-rose-200/60"
+                label={`${profile.followersCount.toLocaleString('en-IN')} ${
+                  profile.followersCount === 1 ? 'follower' : 'followers'
+                }`}
               />
-              <Stat
-                tint="bg-ribbon-yellow/30 text-amber-600"
+              <StatPill
                 icon="⭐"
-                label="Average Rating"
-                value={profile.avgRating > 0 ? profile.avgRating.toFixed(2) : 'Not rated'}
+                tint="bg-amber-50 text-amber-700 ring-amber-200/60"
+                label={
+                  profile.avgRating > 0
+                    ? `${profile.avgRating.toFixed(1)} rating`
+                    : 'No reviews yet'
+                }
               />
-              <Stat
-                tint="bg-emerald-100 text-emerald-600"
-                icon="✓"
-                label="Verification"
-                value={profile.verified ? 'Verified' : 'Pending'}
+              {profile.verified && (
+                <StatPill
+                  icon="✓"
+                  tint="bg-emerald-50 text-emerald-700 ring-emerald-200/60"
+                  label="Verified"
+                />
+              )}
+              <StatPill
+                icon="📅"
+                tint="bg-brand-purple/10 text-brand-purple ring-brand-purple/20"
+                label={`Joined ${new Date(profile.createdAt).toLocaleDateString('en-IN', {
+                  month: 'short',
+                  year: 'numeric',
+                })}`}
               />
             </div>
           </div>
@@ -244,29 +261,22 @@ export default async function OrgPage({ params }: { params: Promise<Params> }) {
 // ============================================================
 // Stat tile
 // ============================================================
-function Stat({
-  tint,
+function StatPill({
   icon,
+  tint,
   label,
-  value,
 }: {
-  tint: string;
   icon: string;
+  tint: string;
   label: string;
-  value: string;
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-black/5 bg-cream-50 p-4">
-      <div className={`flex h-10 w-10 items-center justify-center rounded-xl text-lg ${tint}`}>
-        {icon}
-      </div>
-      <div className="min-w-0">
-        <div className="text-[11px] font-bold uppercase tracking-wider text-ink-400">
-          {label}
-        </div>
-        <div className="text-base font-extrabold leading-tight text-navy-800">{value}</div>
-      </div>
-    </div>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-semibold ring-1 ring-inset ${tint}`}
+    >
+      <span aria-hidden>{icon}</span>
+      {label}
+    </span>
   );
 }
 
