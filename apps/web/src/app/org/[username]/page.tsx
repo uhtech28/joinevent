@@ -4,10 +4,10 @@
 
 import type { ReactElement } from 'react';
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { api } from '@/lib/api';
 import { FollowButton } from '../../events/[slug]/FollowButton';
 import { OrgTabs } from './OrgTabs';
+import { BackButton } from './BackButton';
 import {
   InstagramIcon,
   FacebookIcon,
@@ -81,12 +81,7 @@ export default async function OrgPage({ params }: { params: Promise<Params> }) {
 
   return (
     <main className="mx-auto max-w-5xl px-4 pb-12 pt-4 sm:px-6 sm:pt-6">
-        <Link
-          href="/events"
-          className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-purple hover:underline"
-        >
-          ← Back to events
-        </Link>
+        <BackButton />
 
         {/* ============================================================
             PROFILE CARD — cover + overlapping avatar + header
