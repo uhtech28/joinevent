@@ -6,8 +6,6 @@ import type { ReactElement } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
-import { Header } from '@/components/landing/Header';
-import { Footer } from '@/components/landing/Footer';
 import { FollowButton } from '../../events/[slug]/FollowButton';
 import { OrgTabs } from './OrgTabs';
 import {
@@ -82,9 +80,7 @@ export default async function OrgPage({ params }: { params: Promise<Params> }) {
     : 'from-ribbon-purple via-ribbon-blue to-emerald-400';
 
   return (
-    <>
-      <Header />
-      <main className="mx-auto max-w-5xl px-4 pb-12 pt-4 sm:px-6 sm:pt-6">
+    <main className="mx-auto max-w-5xl px-4 pb-12 pt-4 sm:px-6 sm:pt-6">
         <Link
           href="/events"
           className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-purple hover:underline"
@@ -245,9 +241,7 @@ export default async function OrgPage({ params }: { params: Promise<Params> }) {
         <div className="mt-6">
           <OrgTabs username={profile.username} />
         </div>
-      </main>
-      <Footer />
-    </>
+    </main>
   );
 }
 
