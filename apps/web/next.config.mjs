@@ -33,14 +33,25 @@ const nextConfig = {
           { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(self)' },
           {
             key: 'Content-Security-Policy',
+            // Preview-friendly CSP that works in both dev and the Render
+            // deploy (api on a different subdomain). Key points:
+            //   • script-src 'unsafe-inline' 'unsafe-eval' — Next.js bootstrap
+            //     scripts and the React hydration runtime need them.
+            //   • connect-src * — the api host is on a different subdomain in
+            //     production (joinevents-api.onrender.com), and Leaflet pulls
+            //     OSM tiles + nominatim. Lock this down later with the actual
+            //     production domain when we move off Render.
+            //   • img-src http: https: — local-driver upload URLs are served
+            //     over HTTP in dev; Render serves them over HTTPS.
             value:
-              process.env.NODE_ENV === 'production'
-                ? "default-src 'self'; img-src 'self' data: blob: https: https://*.tile.openstreetmap.org; style-src 'self' 'unsafe-inline' https://unpkg.com; script-src 'self' https://unpkg.com; connect-src 'self' https://*.joinevents.in https://api.joinevents.in; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
-                // Dev: allow images and connections from the local API on a
-                // different port (http://localhost:4000) so uploaded media
-                // and XHR calls aren't blocked by CSP. Also allow Leaflet
-                // assets from unpkg + OSM tile servers.
-                : "default-src 'self'; img-src 'self' data: blob: http: https:; style-src 'self' 'unsafe-inline' https://unpkg.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; connect-src *; frame-ancestors 'none'",
+              "default-src 'self'; " +
+              "img-src 'self' data: blob: http: https:; " +
+              "style-src 'self' 'unsafe-inline' https://unpkg.com; " +
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://unpkg.com; " +
+              "connect-src *; " +
+              "frame-ancestors 'none'; " +
+              "base-uri 'self'; " +
+              "form-action 'self'",
           },
         ],
       },
