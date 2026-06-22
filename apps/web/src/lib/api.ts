@@ -196,6 +196,9 @@ export type CreateBusinessProfileBody = {
   displayName: string;
   type: 'organiser' | 'vendor';
   bio?: string;
+  avatarUrl?: string;
+  coverUrl?: string;
+  location?: string;
 };
 
 // ---------- Societies (Step 5) ----------
