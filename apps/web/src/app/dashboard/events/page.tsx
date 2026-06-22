@@ -8,7 +8,26 @@ import Link from 'next/link';
 import { api, type OwnerEvent, type PublicBusinessProfile } from '@/lib/api';
 import { useAuth } from '@/lib/auth-context';
 
-type Filter = 'all' | 'live' | 'pending_verification' | 'draft' | 'past' | 'cancelled';
+type Filter = 'all' | 'live' | 'upcoming' | 'pending_verification' | 'draft' | 'past' | 'cancelled';
+
+// Calendar-day-aware "is this event happening today?" — start day is floored to
+// local midnight, so an event scheduled for later today (e.g. 6pm) is already
+// counted as live from 12am. End boundary stays exact, so events flip to
+// not-live the instant they end.
+function isLiveNow(e: { status: string; startsAt: string; endsAt: string }, now: number) {
+  if (e.status !== 'live') return false;
+  const end = new Date(e.endsAt).getTime();
+  if (end < now) return false;
+  const sd = new Date(e.startsAt);
+  sd.setHours(0, 0, 0, 0);
+  return sd.getTime() <= now;
+}
+function isUpcoming(e: { status: string; startsAt: string; endsAt: string }, now: number) {
+  if (e.status !== 'live') return false;
+  const sd = new Date(e.startsAt);
+  sd.setHours(0, 0, 0, 0);
+  return sd.getTime() > now;
+}
 type Sort = 'newest' | 'oldest' | 'starts_soonest' | 'most_booked';
 
 export default function EventsPage() {
@@ -41,7 +60,8 @@ export default function EventsPage() {
     const now = Date.now();
     return {
       all: all.length,
-      live: all.filter((e) => e.status === 'live' && new Date(e.endsAt).getTime() > now).length,
+      live: all.filter((e) => isLiveNow(e, now)).length,
+      upcoming: all.filter((e) => isUpcoming(e, now)).length,
       pending_verification: all.filter((e) => e.status === 'pending_verification').length,
       draft: all.filter((e) => e.status === 'draft').length,
       past: all.filter((e) => new Date(e.endsAt).getTime() < now).length,
@@ -53,8 +73,8 @@ export default function EventsPage() {
   const view = useMemo(() => {
     let list = events ?? [];
     const now = Date.now();
-    if (filter === 'live')
-      list = list.filter((e) => e.status === 'live' && new Date(e.endsAt).getTime() > now);
+    if (filter === 'live') list = list.filter((e) => isLiveNow(e, now));
+    else if (filter === 'upcoming') list = list.filter((e) => isUpcoming(e, now));
     else if (filter === 'pending_verification')
       list = list.filter((e) => e.status === 'pending_verification');
     else if (filter === 'draft') list = list.filter((e) => e.status === 'draft');
@@ -134,7 +154,7 @@ export default function EventsPage() {
           icon={<LiveIcon className="h-5 w-5" />}
           eyebrow="Live Now"
           value={counts.live}
-          hint="Accepting bookings"
+          hint="Happening today"
         />
         <StatTile
           accent="bg-amber-500"
@@ -263,6 +283,7 @@ function DraftIcon({ className }: { className?: string }) {
 const FILTER_TABS: Array<{ key: Filter; label: string }> = [
   { key: 'all', label: 'All' },
   { key: 'live', label: 'Live' },
+  { key: 'upcoming', label: 'Upcoming' },
   { key: 'pending_verification', label: 'Pending' },
   { key: 'draft', label: 'Drafts' },
   { key: 'past', label: 'Past' },
