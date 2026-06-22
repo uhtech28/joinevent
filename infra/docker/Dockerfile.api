@@ -10,6 +10,10 @@ RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/api/package.json apps/api/
+# Copy the Prisma schema BEFORE install because apps/api has a
+# `postinstall: prisma generate` hook that reads ./prisma/schema.prisma.
+# Without this the install step fails with "file or directory not found".
+COPY apps/api/prisma apps/api/prisma
 COPY apps/web/package.json apps/web/
 
 RUN pnpm install --frozen-lockfile --filter @joinevents/api...

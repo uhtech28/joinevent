@@ -8,6 +8,11 @@ RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 COPY pnpm-lock.yaml pnpm-workspace.yaml package.json ./
 COPY apps/web/package.json apps/web/
 COPY apps/api/package.json apps/api/
+# Defensive: apps/api has a `postinstall: prisma generate` hook that requires
+# ./prisma/schema.prisma. Even though the web filter shouldn't run it, pnpm
+# sometimes processes workspace-wide install scripts. Copy the schema so the
+# hook can find it if it runs.
+COPY apps/api/prisma apps/api/prisma
 
 RUN pnpm install --frozen-lockfile --filter @joinevents/web...
 
