@@ -1,18 +1,24 @@
 'use client';
 
-// Force dynamic rendering — uses useSearchParams() which Next.js 15 can't
-// statically prerender. Auth pages are per-request anyway.
-export const dynamic = 'force-dynamic';
-
 // Email verification landing page. Linked from the verification email:
 //   /verify-email?token=abc123...
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api, ApiError } from '@/lib/api';
 
+// Wrap the component using useSearchParams in Suspense — required for
+// Next.js 15 prerender of client components.
 export default function VerifyEmailPage() {
+  return (
+    <Suspense fallback={null}>
+      <VerifyEmailInner />
+    </Suspense>
+  );
+}
+
+function VerifyEmailInner() {
   const search = useSearchParams();
   const token = search.get('token');
   const [status, setStatus] = useState<'verifying' | 'ok' | 'error'>('verifying');

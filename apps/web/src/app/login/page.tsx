@@ -1,10 +1,5 @@
 'use client';
 
-// Force dynamic rendering — this page uses useSearchParams() which Next.js 15
-// can't prerender statically. Auth pages don't benefit from static optimization
-// anyway since they're personalized per request.
-export const dynamic = 'force-dynamic';
-
 import { useEffect, useState, Suspense, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -17,7 +12,26 @@ type EmailMode = 'signin' | 'signup';
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1';
 
+// Next.js 15 requires components using useSearchParams to be wrapped in
+// Suspense at the page boundary, otherwise prerender fails with a
+// "missing-suspense-with-csr-bailout" error.
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginFallback() {
+  return (
+    <main className="grid min-h-dvh place-items-center bg-cream-50">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-cream-200 border-t-brand-purple" />
+    </main>
+  );
+}
+
+function LoginPageInner() {
   const router = useRouter();
   const search = useSearchParams();
   const auth = useAuth();

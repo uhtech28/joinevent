@@ -1,18 +1,24 @@
 'use client';
 
-// Force dynamic rendering — uses useSearchParams() which Next.js 15 can't
-// statically prerender. Auth pages are per-request anyway.
-export const dynamic = 'force-dynamic';
-
 // Password reset page. Linked from the reset email:
 //   /reset-password?token=abc123...
 
-import { useState, type FormEvent } from 'react';
+import { useState, Suspense, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { api, ApiError } from '@/lib/api';
 
+// Wrap the component using useSearchParams in Suspense — required for
+// Next.js 15 prerender of client components.
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={null}>
+      <ResetPasswordInner />
+    </Suspense>
+  );
+}
+
+function ResetPasswordInner() {
   const router = useRouter();
   const search = useSearchParams();
   const token = search.get('token');
