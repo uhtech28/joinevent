@@ -96,8 +96,11 @@ export function PostComposer({
     if (valid.length === 0) return;
 
     // Add an "uploading" slot for each file immediately so the user sees feedback.
-    const newSlots: Slot[] = valid.map((f) => ({
-      kind: 'uploading',
+    // Narrow type to the 'uploading' variant so tempId is always accessible
+    // (TS can't infer narrowing from a wider Slot[] when iterated below).
+    type UploadingSlot = Extract<Slot, { kind: 'uploading' }>;
+    const newSlots: UploadingSlot[] = valid.map((f) => ({
+      kind: 'uploading' as const,
       tempId: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       previewUrl: URL.createObjectURL(f),
     }));
