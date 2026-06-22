@@ -66,6 +66,14 @@ const ARCHIVE_THRESHOLD_DAYS = 30;
 export function getEventLifecycle(event: EventLike, now: number = Date.now()): LifecycleDescriptor {
   const start = new Date(event.startsAt).getTime();
   const end = new Date(event.endsAt).getTime();
+  // For UI labelling, "the day of the event" should already feel live to
+  // organisers even before the listed start time — vendors arrive hours
+  // early for setup, doors open later, etc. So we floor the start boundary
+  // to local midnight of the event's start date. The end boundary stays
+  // exact, so events still flip to "Ended" right when they wrap.
+  const startDayLocal = new Date(event.startsAt);
+  startDayLocal.setHours(0, 0, 0, 0);
+  const startDay = startDayLocal.getTime();
   const status = event.status ?? 'live';
 
   const booked = event.stalls.booked ?? 0;
@@ -73,7 +81,7 @@ export function getEventLifecycle(event: EventLike, now: number = Date.now()): L
   const occupancyPct = available > 0 ? booked / available : 0;
   const isSoldOut = available > 0 && booked >= available;
   const isEndingSoon = end > now && end - now <= 24 * 60 * 60 * 1000;
-  const isTrending = !!event.isFeatured || (occupancyPct >= 0.7 && start > now);
+  const isTrending = !!event.isFeatured || (occupancyPct >= 0.7 && startDay > now);
 
   // Hard-status routes (no time math)
   if (status === 'draft') {
@@ -128,8 +136,9 @@ export function getEventLifecycle(event: EventLike, now: number = Date.now()): L
     };
   }
 
-  // Live now
-  if (start <= now && end >= now) {
+  // Live now — calendar-day-of-event counts as live, even before the
+  // listed start time (vendors are typically setting up by then).
+  if (startDay <= now && end >= now) {
     const live: LifecycleBadge = {
       status: 'live_now',
       label: 'Live',
