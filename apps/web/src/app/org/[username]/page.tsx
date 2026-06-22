@@ -2,6 +2,7 @@
 // Cover image with gradient fallback, large overlapping avatar, verified badge,
 // category line, location, rating + events stats, follow + share actions, tabs.
 
+import type { ReactElement } from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { api } from '@/lib/api';
@@ -337,7 +338,7 @@ function SocialLinksRow({
   ].filter(Boolean) as Array<{
     label: string;
     href: string;
-    Icon: (props: { className?: string }) => JSX.Element;
+    Icon: (props: { className?: string }) => ReactElement;
     cls: string;
   }>;
 

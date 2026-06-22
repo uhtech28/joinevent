@@ -1,12 +1,14 @@
 // Single source of truth for the dashboard nav. Both the desktop sidebar
 // and the mobile drawer render from this list.
 
+import type { ReactElement } from 'react';
+
 export type Role = 'organiser' | 'vendor' | 'user';
 
 export type NavItem = {
   href: string;
   label: string;
-  icon: (props: { className?: string }) => JSX.Element;
+  icon: (props: { className?: string }) => ReactElement;
   roles: Role[];
   badge?: number;
 };

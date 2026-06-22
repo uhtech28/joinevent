@@ -3,7 +3,7 @@
 // /dashboard — role-aware. Organisers get the rich profile-hero layout with
 // the right-rail. Users and vendors get the simpler stat-tiles layout.
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactElement } from 'react';
 import Link from 'next/link';
 import {
   api,
@@ -574,7 +574,7 @@ function ShareTo({
 }: {
   href: string;
   tint: string;
-  Icon: (props: { className?: string }) => JSX.Element;
+  Icon: (props: { className?: string }) => ReactElement;
   label: string;
 }) {
   return (
