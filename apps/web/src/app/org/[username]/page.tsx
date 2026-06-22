@@ -4,6 +4,7 @@
 
 import type { ReactElement } from 'react';
 import { notFound } from 'next/navigation';
+import Link from 'next/link';
 import { api } from '@/lib/api';
 import { FollowButton } from '../../events/[slug]/FollowButton';
 import { OrgTabs } from './OrgTabs';
