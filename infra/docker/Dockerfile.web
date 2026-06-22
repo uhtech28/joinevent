@@ -21,6 +21,14 @@ FROM node:20.18.0-alpine AS build
 WORKDIR /app
 RUN corepack enable && corepack prepare pnpm@9.12.0 --activate
 
+# NEXT_PUBLIC_* env vars must be available DURING `next build` because Next.js
+# inlines them into the JS bundle at compile time, not runtime. Render (and any
+# Docker host) only injects env vars at runtime by default, so we accept them
+# as ARG here and re-export as ENV for the build step. The empty default keeps
+# local docker builds working without a flag.
+ARG NEXT_PUBLIC_API_URL=""
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
