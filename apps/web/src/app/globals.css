@@ -79,6 +79,19 @@
   .btn-secondary-light {
     @apply bg-white text-brand-orange shadow-[0_10px_25px_rgba(0,0,0,0.05)];
   }
+
+  /* Form input — used across the dashboard, event wizard, product manager,
+     enquiry dialog, etc. Single source of truth so every form looks the same.
+     Works on input, textarea, and select via className="input". */
+  .input {
+    @apply block w-full rounded-xl border border-black/10 bg-white px-3.5 py-2.5 text-[15px] font-medium text-navy-800 shadow-soft outline-none transition;
+    @apply placeholder:font-normal placeholder:text-ink-400;
+    @apply focus:border-brand-purple/40 focus:ring-2 focus:ring-brand-purple/15;
+    @apply disabled:cursor-not-allowed disabled:opacity-60;
+  }
+  textarea.input {
+    @apply min-h-[80px] py-2.5 leading-relaxed;
+  }
 }
 
 /* ==========================================================
