@@ -42,7 +42,7 @@ export class BookingsService {
           Array<{
             id: string;
             event_id: string;
-            category: string;
+            category: string | null;
             price_paise: number;
             available: number;
             booked: number;

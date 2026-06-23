@@ -21,7 +21,7 @@ export type PublicBooking = {
   bookingTxnId: string;
   createdAt: string;
   stall?: {
-    category: string;
+    category: string | null;
     pricePaise: number;
   };
   event?: {
