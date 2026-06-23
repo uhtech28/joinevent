@@ -84,6 +84,11 @@ export default function NewEventPage() {
   // Load societies for the dropdown.
   useEffect(() => {
     api.societies.list().then(setSocieties).catch(() => {});
+    // Silently attempt geolocation. Browsers that already have permission
+    // resolve immediately and we get coords with zero UI. Browsers that
+    // don't, fail silently — the user can pick a society to set coords.
+    loc.request();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // When the user grants location, autofill lat/lng on page 1.
@@ -112,7 +117,7 @@ export default function NewEventPage() {
       return;
     }
     if (latitude === null || longitude === null) {
-      setError('Set your event location — grant your browser location or pick a society above.');
+      setError('Pick a society above so we can place this event on the map.');
       return;
     }
     setStep(2);
@@ -230,15 +235,6 @@ export default function NewEventPage() {
                 className="input"
               />
             </Field>
-
-            <LocationCard
-              status={loc.status}
-              latitude={latitude}
-              longitude={longitude}
-              hasSocietyPicked={!!societySlug}
-              onRequest={loc.request}
-              error={loc.error}
-            />
 
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label="Starts at">
@@ -514,96 +510,6 @@ function SocietyCombobox({
         </div>
       )}
     </div>
-  );
-}
-
-// ============================================================
-// LocationCard — single button + status, replacing raw lat/lng inputs.
-// ============================================================
-function LocationCard({
-  status,
-  latitude,
-  longitude,
-  hasSocietyPicked,
-  onRequest,
-  error,
-}: {
-  status: 'idle' | 'loading' | 'granted' | 'denied' | 'unavailable';
-  latitude: number | null;
-  longitude: number | null;
-  hasSocietyPicked: boolean;
-  onRequest: () => void;
-  error?: string | null;
-}) {
-  const hasCoords = latitude !== null && longitude !== null;
-  const granted = status === 'granted' || hasCoords;
-  const busy = status === 'loading';
-  const showError = !!error && (status === 'denied' || status === 'unavailable');
-  const sourceLabel = status === 'granted'
-    ? 'From your current location'
-    : hasSocietyPicked
-      ? 'From the selected society'
-      : null;
-  return (
-    <div
-      className={`rounded-2xl border p-4 transition ${
-        granted
-          ? 'border-emerald-200 bg-emerald-50'
-          : 'border-black/10 bg-cream-50'
-      }`}
-    >
-      <div className="flex items-start gap-3">
-        <div
-          className={`flex h-10 w-10 items-center justify-center rounded-xl ${
-            granted ? 'bg-emerald-100 text-emerald-700' : 'bg-brand-purple/10 text-brand-purple'
-          }`}
-        >
-          <PinIcon className="h-5 w-5" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="text-sm font-extrabold text-navy-800">
-            {granted ? 'Location captured' : 'Set event location'}
-          </div>
-          <div className="mt-0.5 text-xs text-ink-500">
-            {granted && hasCoords ? (
-              <span className="tabular-nums">
-                {latitude!.toFixed(4)}, {longitude!.toFixed(4)}
-                {sourceLabel && (
-                  <span className="ml-1.5 text-ink-400">· {sourceLabel}</span>
-                )}
-              </span>
-            ) : busy ? (
-              'Asking your browser for permission…'
-            ) : (
-              'Required — grant your browser location or pick a society above to use its location.'
-            )}
-          </div>
-          {showError && (
-            <div className="mt-1 text-xs text-amber-700">⚠ {error}</div>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={onRequest}
-          disabled={busy}
-          className={`shrink-0 rounded-xl px-3.5 py-2 text-xs font-bold transition disabled:opacity-50 ${
-            granted
-              ? 'border border-emerald-300 bg-white text-emerald-700 hover:bg-emerald-100'
-              : 'bg-navy-800 text-white hover:bg-navy-700'
-          }`}
-        >
-          {busy ? 'Locating…' : granted ? 'Re-capture' : 'Use my location'}
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function PinIcon({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path d="M12 2C8.1 2 5 5.1 5 9c0 5.3 7 13 7 13s7-7.7 7-13c0-3.9-3.1-7-7-7zm0 9.5A2.5 2.5 0 0 1 9.5 9 2.5 2.5 0 0 1 12 6.5 2.5 2.5 0 0 1 14.5 9 2.5 2.5 0 0 1 12 11.5z" />
-    </svg>
   );
 }
 
