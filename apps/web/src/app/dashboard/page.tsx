@@ -131,7 +131,7 @@ function OrganiserDashboard({
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
       {/* MAIN COLUMN */}
-      <div className="space-y-5">
+      <div className="min-w-0 space-y-5">
         {/* --- Profile hero --- */}
         <ProfileHero profile={profile} tags={tags} eventsCount={eventsOrganised} avgRating={avgRating} />
 
@@ -238,7 +238,7 @@ function ProfileHero({
   return (
     <section className="overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-soft">
       {/* Cover */}
-      <div className="relative h-40 w-full overflow-hidden sm:h-48">
+      <div className="relative h-28 w-full overflow-hidden sm:h-40 lg:h-48">
         {profile.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={profile.coverUrl} alt="" className="h-full w-full object-cover" />
@@ -254,18 +254,18 @@ function ProfileHero({
       </div>
 
       {/* Body */}
-      <div className="relative px-5 pb-5 sm:px-6 sm:pb-6">
+      <div className="relative px-4 pb-4 sm:px-6 sm:pb-6">
         {/* Avatar overlapping cover */}
-        <div className="absolute -top-12 left-5 sm:left-6">
+        <div className="absolute -top-9 left-4 sm:-top-12 sm:left-6">
           {profile.avatarUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={profile.avatarUrl}
               alt={profile.displayName}
-              className="h-24 w-24 rounded-full object-cover ring-4 ring-white"
+              className="h-[72px] w-[72px] rounded-full object-cover ring-4 ring-white sm:h-24 sm:w-24"
             />
           ) : (
-            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-purple-gradient text-2xl font-extrabold text-white ring-4 ring-white">
+            <div className="flex h-[72px] w-[72px] items-center justify-center rounded-full bg-purple-gradient text-2xl font-extrabold text-white ring-4 ring-white sm:h-24 sm:w-24">
               {initials}
             </div>
           )}
@@ -279,21 +279,21 @@ function ProfileHero({
           )}
         </div>
 
-        {/* Identity + actions */}
-        <div className="flex flex-wrap items-start justify-between gap-4 pt-14 sm:pt-16">
+        {/* Identity + actions — stacked on mobile, side-by-side on sm+ */}
+        <div className="flex flex-col gap-3 pt-11 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:pt-16">
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-[22px] font-extrabold tracking-tight text-navy-800 sm:text-[26px]">
+              <h1 className="text-[19px] font-extrabold tracking-tight text-navy-800 sm:text-[22px] lg:text-[26px]">
                 {profile.displayName}
               </h1>
               {profile.verified && (
-                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-extrabold text-emerald-700">
+                <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-extrabold text-emerald-700 sm:px-2.5 sm:text-[11px]">
                   ✓ Verified Organiser
                 </span>
               )}
             </div>
             {tags.length > 0 && (
-              <p className="mt-1 text-sm text-ink-500">
+              <p className="mt-1 text-[13px] text-ink-500 sm:text-sm">
                 {tags.map((t, i) => (
                   <span key={t}>
                     {i > 0 && <span className="mx-1.5 text-ink-300">•</span>}
@@ -303,26 +303,28 @@ function ProfileHero({
               </p>
             )}
             {profile.location && (
-              <p className="mt-1 flex items-center gap-1.5 text-sm text-ink-500">
+              <p className="mt-1 flex items-center gap-1.5 text-[13px] text-ink-500 sm:text-sm">
                 <span className="text-ribbon-pink">📍</span>
                 {profile.location}
               </p>
             )}
-            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm font-semibold text-navy-700">
+            <p className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] font-semibold text-navy-700 sm:text-sm">
               <span className="inline-flex items-center gap-1">
                 <span className="text-amber-500">⭐</span>
                 {avgRating > 0 ? avgRating.toFixed(1) : '—'} ({profile.followersCount} Followers)
               </span>
-              <span className="text-ink-300">·</span>
+              <span className="hidden text-ink-300 sm:inline">·</span>
               <span className="inline-flex items-center gap-1">
                 🎪 {eventsCount}+ Events Organised
               </span>
             </p>
           </div>
-          <div className="flex flex-col gap-2 sm:items-end">
+          {/* On mobile this is a horizontal 2-button row spanning full width;
+              on sm+ it becomes a tight vertical column anchored right. */}
+          <div className="flex gap-2 sm:flex-col sm:items-stretch sm:gap-2">
             <Link
               href="/dashboard/profile/edit"
-              className="inline-flex items-center gap-2 rounded-xl border border-ribbon-purple/30 bg-ribbon-purple/5 px-4 py-2 text-sm font-bold text-ribbon-purple transition hover:bg-ribbon-purple/10"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-ribbon-purple/30 bg-ribbon-purple/5 px-3 py-2 text-[13px] font-bold text-ribbon-purple transition hover:bg-ribbon-purple/10 sm:flex-none sm:px-4 sm:text-sm"
             >
               <PencilIcon className="h-4 w-4" />
               Edit Profile
@@ -331,7 +333,7 @@ function ProfileHero({
               href={`/org/${profile.username}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-white px-4 py-2 text-sm font-bold text-navy-700 transition hover:bg-cream-100"
+              className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl border border-black/10 bg-white px-3 py-2 text-[13px] font-bold text-navy-700 transition hover:bg-cream-100 sm:flex-none sm:px-4 sm:text-sm"
             >
               View Public Profile <ExternalIcon className="h-3.5 w-3.5" />
             </Link>
@@ -359,11 +361,11 @@ function KpiCard({
   sub?: string;
 }) {
   return (
-    <div className="flex flex-col rounded-2xl border border-black/[0.06] bg-white p-4 transition hover:border-black/[0.12]">
+    <div className="flex flex-col rounded-2xl border border-black/[0.06] bg-white p-3 transition hover:border-black/[0.12] sm:p-4">
       <div className={`flex h-9 w-9 items-center justify-center rounded-xl ${tint}`}>
         {icon}
       </div>
-      <div className="mt-3 text-[22px] font-extrabold leading-none tracking-tight text-navy-800 tabular-nums">
+      <div className="mt-2.5 text-[20px] font-extrabold leading-none tracking-tight text-navy-800 tabular-nums sm:mt-3 sm:text-[22px]">
         {value}
       </div>
       <div className="mt-1 truncate text-[12px] font-semibold text-ink-500">{label}</div>
