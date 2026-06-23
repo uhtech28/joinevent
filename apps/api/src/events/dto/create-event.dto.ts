@@ -4,10 +4,12 @@ import { z } from 'zod';
 
 const stallInput = z.object({
   // 'type' is the free-text label the organiser types (e.g. "Food").
-  // Stored on the same `category` column for back-compat. Optional.
-  category: z.string().min(1).max(60).optional().nullable(),
+  // Stored on the same `category` column for back-compat. Optional —
+  // accept empty strings (the form sends '' for blank inputs) so we
+  // don't bounce a perfectly valid submit with no type set.
+  category: z.string().max(60).optional().nullable(),
   // Free-text size (e.g. "10x10 ft", "Small"). Optional.
-  sizeText: z.string().min(1).max(60).optional().nullable(),
+  sizeText: z.string().max(60).optional().nullable(),
   // Total amount for the stall (in paise).
   pricePaise: z.number().int().min(0).max(10_000_000), // ≤ ₹1,00,000
   // Advance / token amount. Defaults to 0 server-side.

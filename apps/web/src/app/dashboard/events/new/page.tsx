@@ -145,7 +145,15 @@ export default function NewEventPage() {
         endsAt: new Date(endsAt).toISOString(),
         coverImageUrls: coverImageUrls.length > 0 ? coverImageUrls : undefined,
         capacity: capacity === '' ? undefined : Number(capacity),
-        stalls,
+        // Strip empty strings so the optional fields don't trip Zod's
+        // min-length check on the backend.
+        stalls: stalls.map((s) => ({
+          sizeText: s.sizeText.trim() || undefined,
+          category: s.category.trim() || undefined,
+          pricePaise: s.pricePaise,
+          tokenPaise: s.tokenPaise,
+          available: s.available,
+        })),
       });
       await api.events.submit(event.id);
       router.push('/dashboard');
