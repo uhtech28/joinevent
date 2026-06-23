@@ -561,6 +561,10 @@ function LabeledNumber({
   placeholder?: string;
   onChange: (v: number) => void;
 }) {
+  // Show an empty field when value is 0 so the placeholder shows through;
+  // otherwise React renders a literal '0' that prefixes the next keystroke
+  // (e.g. typing 650 lands as 0650).
+  const display = !Number.isFinite(value) || value === 0 ? '' : String(value);
   return (
     <label className="flex flex-col gap-1">
       <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500">
@@ -568,10 +572,20 @@ function LabeledNumber({
       </span>
       <input
         type="number"
+        inputMode="numeric"
         min={0}
-        value={Number.isFinite(value) ? value : 0}
+        value={display}
         placeholder={placeholder}
-        onChange={(e) => onChange(Number(e.target.value || 0))}
+        onChange={(e) => {
+          const raw = e.target.value;
+          if (raw === '') {
+            onChange(0);
+            return;
+          }
+          // Strip leading zeros so "0650" still maps to 650.
+          const n = Number(raw);
+          onChange(Number.isFinite(n) && n >= 0 ? n : 0);
+        }}
         className="input"
       />
     </label>
