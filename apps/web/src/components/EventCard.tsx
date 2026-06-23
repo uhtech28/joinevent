@@ -9,6 +9,7 @@
 // All status logic comes from `getEventLifecycle` so every surface stays in sync.
 
 import Link from 'next/link';
+import { useState } from 'react';
 import type { ApiEvent } from '@/lib/api';
 import { formatDistance } from '@/lib/use-location';
 import { getEventLifecycle } from '@/lib/event-lifecycle';
@@ -36,19 +37,25 @@ export function EventCard({ event }: { event: ApiEvent }) {
   const lifecycle = getEventLifecycle(event);
   const price = inr(event.stalls.priceFromPaise);
   const cover = event.coverImages?.[0];
+  // Track image load failure so old uploads pointing at Render's wiped local
+  // disk (404 now) fall through to the brand gradient placeholder instead of
+  // rendering the browser's broken-image icon next to alt text.
+  const [coverFailed, setCoverFailed] = useState(false);
+  const showCover = cover && !coverFailed;
   const stallsLeft = Math.max(0, event.stalls.available - event.stalls.booked);
 
   return (
     <article className="group relative flex flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-card transition hover:-translate-y-0.5 hover:shadow-soft">
       {/* Cover */}
       <Link href={`/events/${event.slug}`} className="relative block h-44 w-full overflow-hidden">
-        {cover ? (
+        {showCover ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={cover}
             alt={event.title}
             className="h-full w-full object-cover transition group-hover:scale-105"
             loading="lazy"
+            onError={() => setCoverFailed(true)}
           />
         ) : (
           <div className="h-full w-full bg-gradient-to-br from-ribbon-purple via-brand-purple to-brand-purple-light" aria-hidden />

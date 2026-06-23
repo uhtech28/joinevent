@@ -11,6 +11,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   api,
   ApiError,
@@ -23,13 +24,26 @@ import { PostComposer } from '@/components/posts/PostComposer';
 
 export default function PostsPage() {
   const auth = useAuth();
+  const router = useRouter();
   const [profile, setProfile] = useState<PublicBusinessProfile | null>(null);
   const [posts, setPosts] = useState<PublicPost[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [missingProfile, setMissingProfile] = useState(false);
 
+  // Members (regular users) don't have a business profile and can't publish
+  // posts. Kick them to their feed so they don't see the composer at all.
   useEffect(() => {
     if (auth.status !== 'authenticated') return;
+    const role = auth.user.primaryRole;
+    if (role !== 'organiser' && role !== 'vendor') {
+      router.replace('/dashboard/feed');
+    }
+  }, [auth.status, auth, router]);
+
+  useEffect(() => {
+    if (auth.status !== 'authenticated') return;
+    const role = auth.user.primaryRole;
+    if (role !== 'organiser' && role !== 'vendor') return;
     let alive = true;
     (async () => {
       try {

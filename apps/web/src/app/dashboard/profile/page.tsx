@@ -9,6 +9,7 @@
 // avatar, name + verified badge, category line, location, stats, Edit/Public
 // buttons, post composer, and the live timeline of their own posts.
 
+import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
@@ -24,6 +25,18 @@ import { ImageUploader } from '@/components/profile/ImageUploader';
 
 export default function OwnerProfilePage() {
   const auth = useAuth();
+  const router = useRouter();
+
+  // Members (regular users) don't have a business profile yet. Send them to
+  // their personal profile editor instead of the organiser/vendor view that
+  // would otherwise let them publish posts.
+  useEffect(() => {
+    if (auth.status !== 'authenticated') return;
+    const role = auth.user.primaryRole;
+    if (role !== 'organiser' && role !== 'vendor') {
+      router.replace('/dashboard/settings/profile');
+    }
+  }, [auth.status, auth, router]);
   const [profile, setProfile] = useState<PublicBusinessProfile | null>(null);
   const [posts, setPosts] = useState<PublicPost[]>([]);
   const [loaded, setLoaded] = useState(false);
