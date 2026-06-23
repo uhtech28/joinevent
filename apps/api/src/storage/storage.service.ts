@@ -219,7 +219,7 @@ class CloudinaryDriver implements StorageDriver {
     // Build multipart body. Cloudinary accepts the file as a Blob in the
     // 'file' field. Node 20's global fetch + FormData handle this natively.
     const form = new FormData();
-    form.set('file', new Blob([body], { type: contentType }));
+    form.set('file', new Blob([new Uint8Array(body)], { type: contentType }));
     form.set('public_id', publicId);
     form.set('api_key', this.apiKey);
     form.set('timestamp', String(timestamp));
