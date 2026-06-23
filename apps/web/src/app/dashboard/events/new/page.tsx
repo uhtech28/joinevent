@@ -66,10 +66,20 @@ export default function NewEventPage() {
   const [capacity, setCapacity] = useState<number | ''>(300);
   const [stalls, setStalls] = useState<Stall[]>([DEFAULT_STALL]);
 
-  // Redirect anonymous users.
+  // Redirect anonymous users; non-organisers (members / stall-owners) get
+  // bounced to Browse Events — they can't create, only apply.
   useEffect(() => {
-    if (auth.status === 'anonymous') router.replace('/login');
-  }, [auth.status, router]);
+    if (auth.status === 'anonymous') {
+      router.replace('/login');
+      return;
+    }
+    if (
+      auth.status === 'authenticated' &&
+      auth.user.primaryRole !== 'organiser'
+    ) {
+      router.replace('/dashboard/explore');
+    }
+  }, [auth, auth.status, router]);
 
   // Load societies for the dropdown.
   useEffect(() => {

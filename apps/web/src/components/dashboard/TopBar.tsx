@@ -7,9 +7,15 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { MenuIcon } from './nav-config';
+import { useAuth } from '@/lib/auth-context';
 
 export function TopBar({ onMenuOpen }: { onMenuOpen: () => void }) {
   const router = useRouter();
+  const auth = useAuth();
+  // Only organisers can create events. Members and stall-owners don't need
+  // this CTA at all — they apply to events instead.
+  const isOrganiser =
+    auth.status === 'authenticated' && auth.user.primaryRole === 'organiser';
   const [q, setQ] = useState('');
   const [unread] = useState(0);
 
@@ -91,15 +97,18 @@ export function TopBar({ onMenuOpen }: { onMenuOpen: () => void }) {
         )}
       </Link>
 
-      {/* Create Event — purple gradient per design */}
-      <Link
-        href="/dashboard/events/new"
-        aria-label="Create event"
-        className="inline-flex h-11 flex-shrink-0 items-center gap-2 rounded-2xl bg-purple-gradient px-3 text-sm font-extrabold text-white shadow-purple ring-1 ring-inset ring-white/15 transition hover:opacity-95 sm:px-4 lg:px-5"
-      >
-        <span className="text-lg leading-none">+</span>
-        <span className="hidden sm:inline">Create Event</span>
-      </Link>
+      {/* Create Event — organiser-only. Members / stall-owners apply to
+          events instead of creating them, so the CTA is hidden for them. */}
+      {isOrganiser && (
+        <Link
+          href="/dashboard/events/new"
+          aria-label="Create event"
+          className="inline-flex h-11 flex-shrink-0 items-center gap-2 rounded-2xl bg-purple-gradient px-3 text-sm font-extrabold text-white shadow-purple ring-1 ring-inset ring-white/15 transition hover:opacity-95 sm:px-4 lg:px-5"
+        >
+          <span className="text-lg leading-none">+</span>
+          <span className="hidden sm:inline">Create Event</span>
+        </Link>
+      )}
     </header>
   );
 }
