@@ -172,6 +172,7 @@ export class BusinessProfilesService {
   private toPublic(r: any): PublicBusinessProfile {
     return {
       id: r.id,
+      userId: r.userId,
       username: r.username,
       displayName: r.displayName,
       type: r.type,
@@ -256,4 +257,33 @@ export class BusinessProfilesService {
       throw err;
     }
   }
+  // -----------------------------------------------
+  // Public followers list for a stall-owner profile.
+  // Returns a lightweight roster — name + avatar only.
+  // -----------------------------------------------
+  async listFollowers(username: string): Promise<
+    Array<{ id: string; displayName: string | null; avatarUrl: string | null }>
+  > {
+    const profile = await this.db.businessProfile.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+    if (!profile) return [];
+    const rows = await this.db.follower.findMany({
+      where: { businessProfileId: profile.id },
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+      include: {
+        follower: {
+          select: { id: true, displayName: true, avatarUrl: true },
+        },
+      },
+    });
+    return rows.map((r) => ({
+      id: r.follower.id,
+      displayName: r.follower.displayName,
+      avatarUrl: r.follower.avatarUrl,
+    }));
+  }
+
 }

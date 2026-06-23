@@ -114,4 +114,10 @@ export class BusinessProfilesController {
   reviews(@Param('username') username: string) {
     return this.profiles.listReviews(username);
   }
+
+  // GET /business-profiles/:username/followers — public list (max 200)
+  @Get(':username/followers')
+  followers(@Param('username') username: string) {
+    return this.profiles.listFollowers(username);
+  }
 }

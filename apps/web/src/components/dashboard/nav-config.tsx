@@ -25,6 +25,9 @@ export const NAV: NavItem[] = [
   { href: '/dashboard/explore', label: 'Browse Events', icon: CalendarIcon, roles: ['vendor', 'user'] },
   // Organiser + vendor: post composer + own posts list
   { href: '/dashboard/posts', label: 'Posts', icon: ChatBubbleIcon, roles: ['organiser', 'vendor'] },
+  // Vendor-only: product catalogue + enquiries inbox.
+  { href: '/dashboard/products', label: 'Products', icon: StoreIcon, roles: ['vendor'] },
+  { href: '/dashboard/enquiries', label: 'Enquiries', icon: ClipboardIcon, roles: ['vendor'] },
   { href: '/dashboard/bookings', label: 'Stall Bookings', icon: BookmarkIcon, roles: ['organiser', 'vendor'] },
   { href: '/dashboard/profile', label: 'Profile', icon: UserIcon, roles: ['organiser', 'vendor'] },
   { href: '/dashboard/settings', label: 'Settings', icon: SettingsIcon, roles: ['organiser', 'vendor', 'user'] },

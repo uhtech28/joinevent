@@ -9,6 +9,8 @@ import { api } from '@/lib/api';
 import { FollowButton } from '../../events/[slug]/FollowButton';
 import { OrgTabs } from './OrgTabs';
 import { BackButton } from './BackButton';
+import { VendorProducts } from './VendorProducts';
+import { VendorProfileActions } from './VendorProfileActions';
 import {
   InstagramIcon,
   FacebookIcon,
@@ -245,8 +247,23 @@ export default async function OrgPage({ params }: { params: Promise<Params> }) {
                 })}`}
               />
             </div>
+
+            {/* Stall-owner-only: View Followers + View Enquiries CTAs.
+                Mirrors the design mockup row that sits above 'About Us'. */}
+            {profile.type === 'vendor' && (
+              <VendorProfileActions
+                username={profile.username}
+                ownerUserId={profile.userId}
+              />
+            )}
           </div>
         </section>
+
+        {/* Stall-owner only: Our Products grid sits between identity
+            and the tabs strip. */}
+        {profile.type === 'vendor' && (
+          <VendorProducts username={profile.username} />
+        )}
 
         {/* ============================================================
             TABS — Events / Posts / Reviews

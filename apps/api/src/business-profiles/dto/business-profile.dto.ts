@@ -60,6 +60,7 @@ export type UpdateBusinessProfileDto = z.infer<typeof updateBusinessProfileSchem
 
 export type PublicBusinessProfile = {
   id: string;
+  userId: string;
   username: string;
   displayName: string;
   type: 'organiser' | 'vendor';

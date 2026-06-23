@@ -27,6 +27,8 @@ import { SocietyPostsModule } from './society-posts/society-posts.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
 import { QueueModule } from './queue/queue.module';
 import { PostsModule } from './posts/posts.module';
+import { ProductsModule } from './products/products.module';
+import { EnquiriesModule } from './enquiries/enquiries.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { ApplicationsModule } from './applications/applications.module';
 
@@ -62,6 +64,8 @@ const env = loadEnv();
     RecommendationsModule,
     QueueModule,
     PostsModule,
+    ProductsModule,
+    EnquiriesModule,
     UploadsModule,
     ApplicationsModule,
   ],

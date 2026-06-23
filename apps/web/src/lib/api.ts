@@ -78,6 +78,7 @@ export type DiscoverResponse = {
 // ---------- Business profiles (Step 5) ----------
 export type PublicBusinessProfile = {
   id: string;
+  userId: string;
   username: string;
   displayName: string;
   type: 'organiser' | 'vendor';
@@ -627,6 +628,63 @@ async function call<T>(
   return body as T;
 }
 
+// ============================================================
+// PRODUCTS (vendor catalogue) + ENQUIRIES
+// ============================================================
+export type PublicProduct = {
+  id: string;
+  profileId: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  priceFromPaise: number;
+  imageUrls: string[];
+  isActive: boolean;
+  createdAt: string;
+};
+
+export type CreateProductBody = {
+  name: string;
+  description?: string | null;
+  category?: string | null;
+  priceFromPaise: number;
+  imageUrls: string[];
+};
+
+export type UpdateProductBody = Partial<CreateProductBody> & { isActive?: boolean };
+
+export type PublicEnquiry = {
+  id: string;
+  product: { id: string; name: string; imageUrls: string[] };
+  message: string;
+  buyerName: string | null;
+  buyerPhone: string | null;
+  buyerEmail: string | null;
+  status: 'new' | 'read' | 'replied' | 'closed' | string;
+  ownerReply: string | null;
+  repliedAt: string | null;
+  createdAt: string;
+  fromUser: {
+    id: string;
+    displayName: string | null;
+    avatarUrl: string | null;
+  };
+};
+
+export type CreateEnquiryBody = {
+  productId: string;
+  message: string;
+  buyerName?: string | null;
+  buyerPhone?: string | null;
+  buyerEmail?: string | null;
+};
+
+export type ProfileFollower = {
+  id: string;
+  displayName: string | null;
+  avatarUrl: string | null;
+};
+
 export const api = {
   // public
   health: () => call<HealthResponse>('/health'),
@@ -871,8 +929,66 @@ export const api = {
       ),
   },
 
+  // ============================================================
+  // PRODUCTS — vendor-only CRUD + public catalogue read.
+  // ============================================================
+  products: {
+    listForUsername: (username: string) =>
+      call<PublicProduct[]>(`/products/by-username/${encodeURIComponent(username)}`),
+    mine: () => call<PublicProduct[]>('/products/mine', {}, /* withAuth */ true),
+    get: (id: string) => call<PublicProduct>(`/products/${encodeURIComponent(id)}`),
+    create: (body: CreateProductBody) =>
+      call<PublicProduct>(
+        '/products',
+        { method: 'POST', body: JSON.stringify(body) },
+        /* withAuth */ true,
+      ),
+    update: (id: string, body: UpdateProductBody) =>
+      call<PublicProduct>(
+        `/products/${encodeURIComponent(id)}`,
+        { method: 'PATCH', body: JSON.stringify(body) },
+        /* withAuth */ true,
+      ),
+    delete: (id: string) =>
+      call<{ ok: true }>(
+        `/products/${encodeURIComponent(id)}`,
+        { method: 'DELETE' },
+        /* withAuth */ true,
+      ),
+  },
+
+  // ============================================================
+  // ENQUIRIES — buyer -> stall-owner messages.
+  // ============================================================
+  enquiries: {
+    create: (body: CreateEnquiryBody) =>
+      call<PublicEnquiry>(
+        '/enquiries',
+        { method: 'POST', body: JSON.stringify(body) },
+        /* withAuth */ true,
+      ),
+    received: () =>
+      call<PublicEnquiry[]>('/enquiries/received', {}, /* withAuth */ true),
+    reply: (id: string, reply: string) =>
+      call<PublicEnquiry>(
+        `/enquiries/${encodeURIComponent(id)}/reply`,
+        { method: 'PATCH', body: JSON.stringify({ reply }) },
+        /* withAuth */ true,
+      ),
+    markRead: (id: string) =>
+      call<PublicEnquiry>(
+        `/enquiries/${encodeURIComponent(id)}/read`,
+        { method: 'PATCH' },
+        /* withAuth */ true,
+      ),
+  },
+
   // Org public page endpoints (Step 7c)
   org: {
+    followers: (username: string) =>
+      call<ProfileFollower[]>(
+        `/business-profiles/${encodeURIComponent(username)}/followers`,
+      ),
     events: (username: string, when: 'upcoming' | 'past' = 'upcoming') =>
       call<ApiEvent[]>(
         `/business-profiles/${encodeURIComponent(username)}/events?when=${when}`,
