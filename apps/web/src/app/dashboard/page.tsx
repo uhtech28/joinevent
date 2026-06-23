@@ -434,20 +434,13 @@ function UpcomingEventCard({ event }: { event: OwnerEvent }) {
           </div>
         </div>
 
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-3">
           <Link
             href={`/dashboard/events/${event.id}/edit`}
-            className="flex-1 rounded-lg border border-ribbon-purple/30 bg-ribbon-purple/5 py-1.5 text-center text-[12px] font-bold text-ribbon-purple transition hover:bg-ribbon-purple/10"
+            className="block w-full rounded-lg border border-ribbon-purple/30 bg-ribbon-purple/5 py-1.5 text-center text-[12px] font-bold text-ribbon-purple transition hover:bg-ribbon-purple/10"
           >
             Manage Event
           </Link>
-          <button
-            type="button"
-            className="rounded-lg border border-black/[0.08] bg-white px-2 py-1.5 text-ink-400 hover:bg-cream-100"
-            aria-label="More options"
-          >
-            ⋮
-          </button>
         </div>
       </div>
     </article>
