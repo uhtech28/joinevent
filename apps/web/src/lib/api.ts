@@ -8,8 +8,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1
 // ---------- Event types (Step 2) ----------
 export type ApiStall = {
   id: string;
-  category: string;
+  category: string | null;
+  sizeText: string | null;
   pricePaise: number;
+  tokenPaise: number;
   available: number;
   booked: number;
   slotsLeft: number;
@@ -232,9 +234,15 @@ export type CreateEventBody = {
   capacity?: number;
   metadata?: Record<string, unknown>;
   stalls: Array<{
-    category: string;
+    /** Free-text type (Food / Decor / …). Optional. */
+    category?: string | null;
+    /** Free-text size (e.g. "10x10 ft"). Optional. */
+    sizeText?: string | null;
     pricePaise: number;
-    available: number;
+    /** Advance / token amount. Defaults to 0. */
+    tokenPaise?: number;
+    /** Defaults to 1 — each wizard row creates one stall. */
+    available?: number;
     facilities?: Record<string, unknown>;
   }>;
 };

@@ -3,11 +3,18 @@
 import { z } from 'zod';
 
 const stallInput = z.object({
-  category: z
-    .enum(['food', 'home-decor', 'fashion', 'art', 'books', 'services', 'kids', 'fitness'])
-    .or(z.string().min(2).max(40)),
+  // 'type' is the free-text label the organiser types (e.g. "Food").
+  // Stored on the same `category` column for back-compat. Optional.
+  category: z.string().min(1).max(60).optional().nullable(),
+  // Free-text size (e.g. "10x10 ft", "Small"). Optional.
+  sizeText: z.string().min(1).max(60).optional().nullable(),
+  // Total amount for the stall (in paise).
   pricePaise: z.number().int().min(0).max(10_000_000), // ≤ ₹1,00,000
-  available: z.number().int().min(1).max(200),
+  // Advance / token amount. Defaults to 0 server-side.
+  tokenPaise: z.number().int().min(0).max(10_000_000).optional().default(0),
+  // Each row in the new UI represents one stall, so we let the client send
+  // `available` if present (legacy callers) but default to 1.
+  available: z.number().int().min(1).max(200).optional().default(1),
   facilities: z.record(z.unknown()).optional(),
 });
 

@@ -18,8 +18,10 @@ const DISCOVER_CACHE_TTL_S = 30;
 // `stallsList` is only set on detail (findBySlug).
 export type PublicStall = {
   id: string;
-  category: string;
+  category: string | null;
+  sizeText: string | null;
   pricePaise: number;
+  tokenPaise: number;
   available: number;
   booked: number;
   slotsLeft: number;
@@ -498,8 +500,10 @@ export class EventsService {
         stalls: input.stalls.length
           ? {
               create: input.stalls.map((s) => ({
-                category: s.category,
+                category: s.category ?? null,
+                sizeText: s.sizeText ?? null,
                 pricePaise: s.pricePaise,
+                tokenPaise: s.tokenPaise ?? 0,
                 available: s.available,
                 facilities: (s.facilities ?? {}) as Prisma.InputJsonValue,
               })),
@@ -682,8 +686,10 @@ export class EventsService {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     pub.stallsList = row.stalls.map((s: any) => ({
       id: s.id,
-      category: s.category,
+      category: s.category ?? null,
+      sizeText: s.sizeText ?? null,
       pricePaise: s.pricePaise,
+      tokenPaise: s.tokenPaise ?? 0,
       available: s.available,
       booked: s.booked,
       slotsLeft: Math.max(0, s.available - s.booked),

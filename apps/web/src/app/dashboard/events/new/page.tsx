@@ -13,8 +13,10 @@ import { useLocation } from '@/lib/use-location';
 import { MultiImageUploader } from '@/components/profile/MultiImageUploader';
 
 type Stall = {
-  category: string;
+  sizeText: string;
   pricePaise: number;
+  tokenPaise: number;
+  category: string;
   available: number;
 };
 
@@ -29,7 +31,7 @@ const STALL_CATEGORIES = [
   'fitness',
 ] as const;
 
-const DEFAULT_STALL: Stall = { category: 'food', pricePaise: 100000, available: 4 };
+const DEFAULT_STALL: Stall = { sizeText: '', pricePaise: 100000, tokenPaise: 0, category: '', available: 1 };
 
 // Local date-time inputs format: "yyyy-MM-ddTHH:mm" in local time. We convert
 // to ISO 8601 UTC on submit.
@@ -298,7 +300,7 @@ export default function NewEventPage() {
                   onClick={() => setStalls([...stalls, { ...DEFAULT_STALL }])}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-black/10 bg-white px-3 py-1.5 text-xs font-bold text-navy-700 transition hover:bg-cream-100"
                 >
-                  + Add another category
+                  + Add another stall
                 </button>
               </div>
 
@@ -307,37 +309,44 @@ export default function NewEventPage() {
                   key={idx}
                   className="rounded-2xl border border-black/5 bg-white p-4 shadow-card"
                 >
-                  <div className="grid gap-3 sm:grid-cols-[1.5fr_1fr_1fr_auto]">
-                    <select
-                      value={stall.category}
-                      onChange={(e) => {
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.2fr_1fr_1fr_1.2fr_auto]">
+                    <LabeledInput
+                      label="Size of stall"
+                      placeholder="e.g. 10x10 ft"
+                      value={stall.sizeText}
+                      onChange={(v) => {
                         const next = [...stalls];
-                        next[idx] = { ...stall, category: e.target.value };
+                        next[idx] = { ...stall, sizeText: v };
                         setStalls(next);
                       }}
-                      className="input"
-                    >
-                      {STALL_CATEGORIES.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                    <NumberField
+                    />
+                    <LabeledNumber
+                      label="Total amount (₹)"
+                      placeholder="1000"
                       value={stall.pricePaise / 100}
-                      label="₹ price"
                       onChange={(n) => {
                         const next = [...stalls];
                         next[idx] = { ...stall, pricePaise: Math.round(n * 100) };
                         setStalls(next);
                       }}
                     />
-                    <NumberField
-                      value={stall.available}
-                      label="qty"
+                    <LabeledNumber
+                      label="Token amount (₹)"
+                      placeholder="200"
+                      value={stall.tokenPaise / 100}
                       onChange={(n) => {
                         const next = [...stalls];
-                        next[idx] = { ...stall, available: Math.max(1, Math.floor(n)) };
+                        next[idx] = { ...stall, tokenPaise: Math.max(0, Math.round(n * 100)) };
+                        setStalls(next);
+                      }}
+                    />
+                    <LabeledInput
+                      label="Type (optional)"
+                      placeholder="e.g. Food, Decor"
+                      value={stall.category}
+                      onChange={(v) => {
+                        const next = [...stalls];
+                        next[idx] = { ...stall, category: v };
                         setStalls(next);
                       }}
                     />
@@ -345,7 +354,7 @@ export default function NewEventPage() {
                       type="button"
                       onClick={() => setStalls(stalls.filter((_, i) => i !== idx))}
                       disabled={stalls.length === 1}
-                      className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="self-end rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm font-semibold text-rose-700 disabled:cursor-not-allowed disabled:opacity-40"
                       aria-label="Remove stall row"
                     >
                       ✕
@@ -513,6 +522,62 @@ function SocietyCombobox({
   );
 }
 
+
+function LabeledInput({
+  label,
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  onChange: (v: string) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500">
+        {label}
+      </span>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder}
+        onChange={(e) => onChange(e.target.value)}
+        className="input"
+      />
+    </label>
+  );
+}
+
+function LabeledNumber({
+  label,
+  value,
+  placeholder,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  placeholder?: string;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500">
+        {label}
+      </span>
+      <input
+        type="number"
+        min={0}
+        value={Number.isFinite(value) ? value : 0}
+        placeholder={placeholder}
+        onChange={(e) => onChange(Number(e.target.value || 0))}
+        className="input"
+      />
+    </label>
+  );
+}
+
 function Field({
   label,
   hint,
@@ -527,28 +592,6 @@ function Field({
       <span className="mb-1.5 block text-sm font-semibold text-ink-600">{label}</span>
       {children}
       {hint && <span className="mt-1.5 block text-xs text-ink-300">{hint}</span>}
-    </label>
-  );
-}
-
-function NumberField({
-  value,
-  label,
-  onChange,
-}: {
-  value: number;
-  label: string;
-  onChange: (n: number) => void;
-}) {
-  return (
-    <label className="block">
-      <input
-        type="number"
-        value={value}
-        onChange={(e) => onChange(Number(e.target.value))}
-        placeholder={label}
-        className="input"
-      />
     </label>
   );
 }
