@@ -457,6 +457,7 @@ function UpcomingEventCard({ event }: { event: OwnerEvent }) {
 // =============================================================
 function ShareProfileCard({ profile }: { profile: PublicBusinessProfile }) {
   const [copied, setCopied] = useState(false);
+  const [downloadingQR, setDownloadingQR] = useState(false);
   const publicUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}/org/${profile.username}`
@@ -481,6 +482,36 @@ function ShareProfileCard({ profile }: { profile: PublicBusinessProfile }) {
       },
       () => {},
     );
+  }
+
+  // Download a high-res PNG of a QR code that links to this organiser /
+  // stall-owner's public profile. Uses qrserver.com — free, no auth,
+  // permitted by our CSP (connect-src *).
+  async function downloadQR() {
+    if (downloadingQR) return;
+    setDownloadingQR(true);
+    try {
+      const apiUrl =
+        `https://api.qrserver.com/v1/create-qr-code/?size=600x600&margin=20` +
+        `&format=png&data=${encodeURIComponent(publicUrl)}`;
+      const res = await fetch(apiUrl);
+      if (!res.ok) throw new Error('QR service is temporarily unavailable.');
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = objectUrl;
+      a.download = `${profile.username}-joinevents-qr.png`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+      window.alert(
+        err instanceof Error ? err.message : 'Failed to download QR code.',
+      );
+    } finally {
+      setDownloadingQR(false);
+    }
   }
 
   return (
@@ -557,10 +588,13 @@ function ShareProfileCard({ profile }: { profile: PublicBusinessProfile }) {
       </div>
       <button
         type="button"
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-black/[0.08] bg-white py-2.5 text-xs font-bold text-navy-700 transition hover:bg-cream-100"
+        onClick={downloadQR}
+        disabled={downloadingQR}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border border-black/[0.08] bg-white py-2.5 text-xs font-bold text-navy-700 transition hover:bg-cream-100 disabled:cursor-not-allowed disabled:opacity-60"
+        title={`Download a QR code that points to ${publicUrl}`}
       >
         <QrIcon className="h-4 w-4" />
-        Download QR
+        {downloadingQR ? 'Generating…' : 'Download QR'}
       </button>
     </section>
   );
