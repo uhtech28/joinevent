@@ -1,3 +1,5 @@
+'use client';
+
 // FeaturedProducts — landing section, mockup-exact.
 // Five hardcoded showcase items styled to match the dashboard's
 // Featured Products row: cover image, name, "Handmade | <material>"
