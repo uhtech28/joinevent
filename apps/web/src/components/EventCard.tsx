@@ -123,20 +123,23 @@ export function EventCard({ event }: { event: ApiEvent }) {
           📍 {event.addressText}
         </p>
 
-        {/* Stall stats row (matches mockup: "X / Y Stalls", visitors) */}
-        <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl bg-cream-50 p-2.5 text-center">
-          <Stat label="Total" value={event.stalls.available.toString()} tint="text-navy-800" />
-          <Stat
-            label={lifecycle.isSoldOut ? 'Sold out' : 'Available'}
-            value={stallsLeft.toString()}
-            tint={lifecycle.isSoldOut ? 'text-rose-500' : 'text-emerald-600'}
-          />
-          <Stat
-            label="From"
-            value={price ?? '—'}
-            tint="text-ribbon-purple"
-          />
-        </div>
+        {/* Stall stats row — vendor-only. Members / anonymous viewers don't
+            need to see inventory; they're here for the event itself. */}
+        {showApplyCta && (
+          <div className="mt-3 grid grid-cols-3 gap-1.5 rounded-xl bg-cream-50 p-2.5 text-center">
+            <Stat label="Total" value={event.stalls.available.toString()} tint="text-navy-800" />
+            <Stat
+              label={lifecycle.isSoldOut ? 'Sold out' : 'Available'}
+              value={stallsLeft.toString()}
+              tint={lifecycle.isSoldOut ? 'text-rose-500' : 'text-emerald-600'}
+            />
+            <Stat
+              label="From"
+              value={price ?? '—'}
+              tint="text-ribbon-purple"
+            />
+          </div>
+        )}
 
         {/* CTAs — single View Details for users/organisers; dual CTA for vendors. */}
         {showApplyCta ? (
@@ -178,10 +181,4 @@ export function EventCard({ event }: { event: ApiEvent }) {
 function Stat({ label, value, tint }: { label: string; value: string; tint: string }) {
   return (
     <div>
-      <div className={`text-sm font-extrabold leading-none ${tint}`}>{value}</div>
-      <div className="mt-1 text-[9px] font-bold uppercase tracking-wider text-ink-400">
-        {label}
-      </div>
-    </div>
-  );
-}
+      <div className={`text-sm font-extrabold leading-none ${tint}`}>{value}
