@@ -28,6 +28,9 @@ export const NAV: NavItem[] = [
   // Vendor-only: product catalogue + enquiries inbox.
   { href: '/dashboard/products', label: 'Products', icon: StoreIcon, roles: ['vendor'] },
   { href: '/dashboard/enquiries', label: 'Enquiries', icon: ClipboardIcon, roles: ['vendor'] },
+  // Organisers see vendor stall applications under the same 'Enquiries'
+  // label — different route, same mental model (incoming requests inbox).
+  { href: '/dashboard/applications', label: 'Enquiries', icon: ClipboardIcon, roles: ['organiser'] },
   { href: '/dashboard/bookings', label: 'Stall Bookings', icon: BookmarkIcon, roles: ['organiser', 'vendor'] },
   { href: '/dashboard/profile', label: 'Profile', icon: UserIcon, roles: ['organiser', 'vendor'] },
   { href: '/dashboard/settings', label: 'Settings', icon: SettingsIcon, roles: ['organiser', 'vendor', 'user'] },

@@ -5,6 +5,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   api,
   ApiError,
@@ -25,7 +26,18 @@ const STATUS_TABS: { key: ApplicationStatusFilter; label: string; tone: string }
 
 export default function ApplicationsPage() {
   const auth = useAuth();
+  const router = useRouter();
   const [filter, setFilter] = useState<ApplicationStatusFilter>('all');
+
+  // Organiser-only inbox. Vendors / members bounced — they have their own
+  // surfaces (vendor bookings list, etc).
+  useEffect(() => {
+    if (auth.status !== 'authenticated') return;
+    if (auth.user.primaryRole !== 'organiser') {
+      router.replace('/dashboard');
+    }
+  }, [auth, auth.status, router]);
+
   const [apps, setApps] = useState<PublicApplication[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
