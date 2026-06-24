@@ -4,6 +4,7 @@
 // 8-tile category grid, 4-step how-it-works, 4-icon trust strip, footer.
 
 import Link from 'next/link';
+import { FeaturedProducts } from './FeaturedProducts';
 
 export default function HomePage() {
   return (
@@ -11,7 +12,7 @@ export default function HomePage() {
       <TopNav />
       <main>
         <Hero />
-        <CategoryGrid />
+        <FeaturedProducts />
         <HowItWorks />
         <WhyJoinEvents />
         <CtaStrip />
@@ -366,63 +367,6 @@ function PhoneMock() {
         </div>
       </div>
     </div>
-  );
-}
-
-// =============================================================
-// CATEGORY GRID
-// =============================================================
-const CATEGORIES = [
-  { emoji: '👗', label: 'Fashion & Clothing' },
-  { emoji: '🍔', label: 'Food & Beverages' },
-  { emoji: '🪴', label: 'Home Decor' },
-  { emoji: '🎨', label: 'Handicrafts' },
-  { emoji: '💄', label: 'Beauty & Wellness' },
-  { emoji: '💍', label: 'Jewellery' },
-  { emoji: '📱', label: 'Electronics' },
-] as const;
-
-function CategoryGrid() {
-  return (
-    <section id="categories" className="bg-cream-50 py-16 sm:py-20">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="text-center">
-          <h2 className="text-[26px] font-extrabold tracking-tight text-navy-800 sm:text-[32px]">
-            Find Events By Business Category
-          </h2>
-          <p className="mt-1.5 text-sm text-ink-500 sm:text-base">
-            Book stalls at the best events that match your business
-          </p>
-        </div>
-        <div className="mt-8 grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-8">
-          {CATEGORIES.map((c) => (
-            <Link
-              key={c.label}
-              href={`/events?category=${encodeURIComponent(c.label)}`}
-              className="group flex flex-col items-center gap-2 rounded-2xl border border-black/[0.06] bg-white p-4 text-center shadow-soft transition hover:-translate-y-0.5 hover:border-brand-purple/30 hover:shadow-card-hover"
-            >
-              <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-purple/8 text-2xl ring-1 ring-brand-purple/10">
-                {c.emoji}
-              </span>
-              <span className="text-[11.5px] font-extrabold leading-tight text-navy-800">
-                {c.label}
-              </span>
-            </Link>
-          ))}
-          <Link
-            href="/events"
-            className="group flex flex-col items-center justify-center gap-2 rounded-2xl border border-brand-purple/30 bg-brand-purple/5 p-4 text-center text-brand-purple transition hover:-translate-y-0.5 hover:bg-brand-purple/10"
-          >
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-xl">
-              ⊞
-            </span>
-            <span className="text-[11.5px] font-extrabold leading-tight">
-              View All Categories
-            </span>
-          </Link>
-        </div>
-      </div>
-    </section>
   );
 }
 
