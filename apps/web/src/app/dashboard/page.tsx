@@ -646,18 +646,18 @@ function SimpleDashboard({
         <div className="text-xs font-bold uppercase tracking-[0.18em] text-ribbon-purple">
           Welcome
         </div>
-        <h1 className="mt-1 text-[28px] font-extrabold tracking-tight text-navy-800 sm:text-[32px]">
+        <h1 className="mt-1 text-[22px] font-extrabold tracking-tight text-navy-800 sm:text-[28px] lg:text-[32px]">
           Good to see you, {name}!
         </h1>
-        <p className="mt-1 text-sm text-ink-500">
+        <p className="mt-1 text-[13px] text-ink-500 sm:text-sm">
           {role === 'vendor' ? 'Browse events near you and book your next stall.' : 'Discover events and follow your favourite organisers.'}
         </p>
       </header>
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <SimpleStat icon="🎪" tint="bg-emerald-100 text-emerald-600" label={role === 'vendor' ? 'My Bookings' : 'Followed events'} value={bookings.length.toString()} />
+      <div className="grid grid-cols-3 gap-2.5 sm:gap-4">
+        <SimpleStat icon="🎪" tint="bg-emerald-100 text-emerald-600" label={role === 'vendor' ? 'My Bookings' : 'Following'} value={bookings.length.toString()} />
         <SimpleStat icon="🗓" tint="bg-ribbon-purple/15 text-ribbon-purple" label="Upcoming" value={upcomingBookings.length.toString()} />
-        <SimpleStat icon="🌐" tint="bg-ribbon-blue/15 text-ribbon-blue" label="Browsable events" value={discovery.length.toString()} />
+        <SimpleStat icon="🌐" tint="bg-ribbon-blue/15 text-ribbon-blue" label="Available" value={discovery.length.toString()} />
       </div>
 
       {discovery.length > 0 && (
@@ -696,10 +696,10 @@ function SimpleDashboard({
 
 function SimpleStat({ icon, tint, label, value }: { icon: string; tint: string; label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-black/[0.06] bg-white p-5">
-      <div className={`flex h-9 w-9 items-center justify-center rounded-lg text-base ${tint}`}>{icon}</div>
-      <div className="mt-3 text-[26px] font-extrabold leading-none tabular-nums text-navy-800">{value}</div>
-      <div className="mt-2 text-[12px] font-semibold text-ink-500">{label}</div>
+    <div className="rounded-2xl border border-black/[0.06] bg-white p-3 sm:p-5">
+      <div className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm sm:h-9 sm:w-9 sm:text-base ${tint}`}>{icon}</div>
+      <div className="mt-2 text-[20px] font-extrabold leading-none tabular-nums text-navy-800 sm:mt-3 sm:text-[26px]">{value}</div>
+      <div className="mt-1 line-clamp-2 text-[11px] font-semibold leading-tight text-ink-500 sm:mt-2 sm:text-[12px]">{label}</div>
     </div>
   );
 }
