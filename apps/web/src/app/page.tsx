@@ -15,7 +15,6 @@ export default function HomePage() {
         <FeaturedEvents />
         <FeaturedProducts />
         <TopRatedStalls />
-        <BrowseByCity />
         <HowItWorks />
         <WhyJoinEvents />
       </main>
@@ -637,65 +636,6 @@ function StallCard({ stall }: { stall: ShowcaseStall }) {
         </div>
       </div>
     </article>
-  );
-}
-
-// =============================================================
-// BROWSE BY CITY — 6 city tiles.
-// =============================================================
-const CITIES = [
-  { name: 'Delhi NCR', count: '320+ Events', emoji: '🏛️' },
-  { name: 'Mumbai', count: '210+ Events', emoji: '🌊' },
-  { name: 'Bangalore', count: '190+ Events', emoji: '🌳' },
-  { name: 'Hyderabad', count: '150+ Events', emoji: '🕌' },
-  { name: 'Pune', count: '120+ Events', emoji: '🎓' },
-  { name: 'Kolkata', count: '110+ Events', emoji: '🚋' },
-] as const;
-
-function BrowseByCity() {
-  return (
-    <section id="cities" className="bg-cream-50 py-14 sm:py-16">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 className="text-[24px] font-extrabold tracking-tight text-navy-800 sm:text-[28px]">
-              Browse Events by City
-            </h2>
-            <p className="mt-1 text-sm text-ink-500">
-              From metros to tier-2 — events near you.
-            </p>
-          </div>
-          <Link
-            href="/login"
-            className="text-sm font-extrabold text-brand-purple hover:underline"
-          >
-            View All Locations →
-          </Link>
-        </div>
-
-        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {CITIES.map((c) => (
-            <Link
-              key={c.name}
-              href="/login"
-              className="group flex flex-col items-center gap-2 rounded-2xl border border-black/[0.06] bg-white p-5 text-center shadow-soft transition hover:-translate-y-0.5 hover:border-brand-purple/30 hover:shadow-card-hover"
-            >
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-purple/10 text-3xl ring-1 ring-brand-purple/10">
-                {c.emoji}
-              </span>
-              <div>
-                <div className="text-[13px] font-extrabold text-navy-800">
-                  {c.name}
-                </div>
-                <div className="mt-0.5 text-[11px] font-semibold text-brand-purple">
-                  {c.count}
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
