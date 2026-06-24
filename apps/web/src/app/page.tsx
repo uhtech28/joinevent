@@ -827,10 +827,10 @@ function Footer() {
         <FooterCol
           title="Product"
           links={[
-            { href: '/events', label: 'Browse Events' },
-            { href: '#categories', label: 'Categories' },
-            { href: '#how-it-works', label: 'How It Works' },
-            { href: '#pricing', label: 'Pricing' },
+            { href: '/login', label: 'Browse Events' },
+            { href: '/login', label: 'Categories' },
+            { href: '/login', label: 'How It Works' },
+            { href: '/login', label: 'Pricing' },
           ]}
         />
         <FooterCol
