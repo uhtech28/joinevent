@@ -15,7 +15,6 @@ export default function HomePage() {
         <FeaturedProducts />
         <HowItWorks />
         <WhyJoinEvents />
-        <CtaStrip />
       </main>
       <Footer />
     </div>
@@ -467,51 +466,6 @@ function WhyJoinEvents() {
                   </span>
                 </div>
               ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// =============================================================
-// FINAL CTA
-// =============================================================
-function CtaStrip() {
-  return (
-    <section className="bg-cream-50 pb-20 pt-4">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div
-          className="overflow-hidden rounded-3xl bg-purple-gradient p-8 text-white shadow-purple sm:p-10"
-          style={{
-            backgroundImage:
-              'radial-gradient(500px circle at 80% 20%, rgba(255,255,255,0.18), transparent 50%), radial-gradient(360px circle at 15% 90%, rgba(255,255,255,0.10), transparent 60%)',
-          }}
-        >
-          <div className="grid items-center gap-5 lg:grid-cols-[1.4fr_1fr]">
-            <div>
-              <h3 className="text-[26px] font-extrabold leading-tight tracking-tight sm:text-[32px]">
-                Ready to grow with JoinEvents?
-              </h3>
-              <p className="mt-2 max-w-lg text-[15px] text-white/90">
-                Join 500+ organisers and 25,000+ businesses already creating
-                better events together.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-              <Link
-                href="/login?role=organiser"
-                className="inline-flex h-12 items-center gap-2 rounded-2xl bg-white px-6 text-sm font-extrabold text-brand-purple shadow-soft transition hover:opacity-95"
-              >
-                Start an Event
-              </Link>
-              <Link
-                href="/login?role=vendor"
-                className="inline-flex h-12 items-center gap-2 rounded-2xl border-2 border-white/60 bg-transparent px-6 text-sm font-extrabold text-white transition hover:bg-white/10"
-              >
-                List Your Stall
-              </Link>
             </div>
           </div>
         </div>
