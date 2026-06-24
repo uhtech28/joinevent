@@ -178,7 +178,14 @@ export function EventCard({ event }: { event: ApiEvent }) {
   );
 }
 
+
 function Stat({ label, value, tint }: { label: string; value: string; tint: string }) {
   return (
     <div>
-      <div className={`text-sm font-extrabold leading-none ${tint}`}>{value}
+      <div className={`text-sm font-extrabold leading-none ${tint}`}>{value}</div>
+      <div className="mt-1 text-[9px] font-bold uppercase tracking-wider text-ink-400">
+        {label}
+      </div>
+    </div>
+  );
+}
