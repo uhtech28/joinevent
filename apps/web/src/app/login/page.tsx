@@ -52,15 +52,22 @@ function LoginPageInner() {
   }, []);
 
   return (
-    <main className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-10">
+    <main
+      className="min-h-screen w-full"
+      style={{
+        backgroundImage:
+          'radial-gradient(800px circle at 0% 0%, rgba(124,93,250,0.18), transparent 50%), radial-gradient(700px circle at 100% 100%, rgba(255,107,168,0.10), transparent 55%)',
+      }}
+    >
+      <div className="mx-auto flex min-h-screen w-full max-w-md flex-col justify-center px-6 py-10">
       <Link
         href="/"
-        className="mb-8 inline-flex items-center gap-1 text-sm font-semibold text-brand-orange hover:underline"
+        className="mb-8 inline-flex items-center gap-1 text-sm font-semibold text-brand-purple hover:underline"
       >
         ← Back to home
       </Link>
 
-      <h1 className="bg-brand-gradient-text bg-clip-text text-4xl font-extrabold tracking-tight text-transparent">
+      <h1 className="bg-purple-gradient bg-clip-text text-4xl font-extrabold tracking-tight text-transparent">
         Welcome back
       </h1>
       <p className="mt-2 text-base text-ink-400">Sign in with phone or email.</p>
@@ -99,16 +106,16 @@ function LoginPageInner() {
 
       <footer className="mt-12 text-center text-xs text-ink-300">
         By continuing you agree to our{' '}
-        <a href="/legal/terms" className="font-semibold hover:text-brand-orange hover:underline">
+        <a href="/legal/terms" className="font-semibold hover:text-brand-purple hover:underline">
           Terms
         </a>{' '}
         &amp;{' '}
-        <a href="/legal/privacy" className="font-semibold hover:text-brand-orange hover:underline">
+        <a href="/legal/privacy" className="font-semibold hover:text-brand-purple hover:underline">
           Privacy Policy
         </a>
         .
       </footer>
-    </main>
+    </div></main>
   );
 }
 
@@ -238,7 +245,7 @@ function PhonePanel({ onDone }: { onDone: (s: any) => void }) {
       <button
         type="button"
         onClick={() => { setStep('phone'); setOtp(''); setError(null); setDevHint(null); }}
-        className="w-full text-sm font-semibold text-ink-400 hover:text-brand-orange"
+        className="w-full text-sm font-semibold text-ink-400 hover:text-brand-purple"
       >
         ← Use a different number
       </button>
@@ -376,7 +383,7 @@ function EmailPanel({ onDone }: { onDone: (s: any) => void }) {
         <button
           type="button"
           onClick={onForgot}
-          className="w-full text-sm font-semibold text-ink-400 hover:text-brand-orange"
+          className="w-full text-sm font-semibold text-ink-400 hover:text-brand-purple"
         >
           Forgot password?
         </button>
@@ -425,9 +432,9 @@ function GoogleIcon() {
 // Shared bits
 // ============================================================
 const inputClass =
-  'w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-base font-medium shadow-soft outline-none focus:border-brand-orange focus:ring-2 focus:ring-brand-orange/20';
+  'w-full rounded-2xl border border-black/10 bg-white px-4 py-3 text-base font-medium shadow-soft outline-none focus:border-brand-purple focus:ring-2 focus:ring-brand-purple/20';
 const primaryBtn =
-  'btn btn-primary w-full disabled:cursor-not-allowed disabled:opacity-60';
+  'inline-flex items-center justify-center gap-2 rounded-2xl bg-purple-gradient px-6 py-3 text-base font-extrabold text-white shadow-purple transition hover:opacity-95 w-full disabled:cursor-not-allowed disabled:opacity-60';
 
 function Label({ text, children }: { text: string; children: React.ReactNode }) {
   return (
