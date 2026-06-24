@@ -170,6 +170,10 @@ export default function ExplorePeoplePage() {
 function ProfileCard({ profile }: { profile: PublicBusinessProfile }) {
   const initial = (profile.displayName?.[0] ?? profile.username[0] ?? '?').toUpperCase();
   const ratingNum = Number(profile.avgRating) || 0;
+  // Track avatar load failure so dead URLs (e.g. wiped local-disk uploads)
+  // fall back to the initial-on-gradient circle instead of a broken-image icon.
+  const [avatarFailed, setAvatarFailed] = useState(false);
+  const showAvatar = !!profile.avatarUrl && !avatarFailed;
   return (
     <Link
       href={`/org/${encodeURIComponent(profile.username)}`}
@@ -178,12 +182,13 @@ function ProfileCard({ profile }: { profile: PublicBusinessProfile }) {
       <div className="flex items-start gap-3">
         {/* Avatar */}
         <div className="relative shrink-0">
-          {profile.avatarUrl ? (
+          {showAvatar ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={profile.avatarUrl}
+              src={profile.avatarUrl!}
               alt={profile.displayName}
               className="h-14 w-14 rounded-2xl object-cover ring-2 ring-white shadow"
+              onError={() => setAvatarFailed(true)}
             />
           ) : (
             <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-purple-gradient text-xl font-extrabold text-white shadow-purple">
