@@ -12,7 +12,11 @@ export default function HomePage() {
       <TopNav />
       <main>
         <Hero />
+        <StatsStrip />
+        <FeaturedEvents />
         <FeaturedProducts />
+        <TopRatedStalls />
+        <BrowseByCity />
         <HowItWorks />
         <WhyJoinEvents />
       </main>
@@ -366,6 +370,365 @@ function PhoneMock() {
         </div>
       </div>
     </div>
+  );
+}
+
+// =============================================================
+// STATS STRIP — four big numbers across a purple-tinted band.
+// Builds trust right after the hero CTAs.
+// =============================================================
+const STATS = [
+  { value: '1,250+', label: 'Events' },
+  { value: '8,500+', label: 'Stalls Booked' },
+  { value: '2,300+', label: 'Organisers' },
+  { value: '25,000+', label: 'Businesses' },
+] as const;
+
+function StatsStrip() {
+  return (
+    <section className="bg-cream-50 pb-2 pt-10 sm:pt-12">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-2 gap-4 rounded-3xl border border-black/[0.06] bg-white p-6 shadow-soft sm:grid-cols-4 sm:p-8">
+          {STATS.map((s) => (
+            <div key={s.label} className="text-center">
+              <div className="text-[24px] font-extrabold tracking-tight text-brand-purple sm:text-[32px]">
+                {s.value}
+              </div>
+              <div className="mt-1 text-[12px] font-bold uppercase tracking-wider text-ink-500 sm:text-[13px]">
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// =============================================================
+// FEATURED EVENTS — 4 event cards with date badge + stall + visitor counts.
+// =============================================================
+type ShowcaseEvent = {
+  day: string;
+  month: string;
+  title: string;
+  venue: string;
+  dateRange: string;
+  stalls: string;
+  visitors: string;
+  imageUrl: string;
+  emoji: string;
+};
+
+const EVENTS: ShowcaseEvent[] = [
+  {
+    day: '25',
+    month: 'MAY',
+    title: 'Summer Food & Lifestyle Festival',
+    venue: 'DLF Cyber Hub, Gurgaon',
+    dateRange: '20 – 27 May 2024',
+    stalls: '65 Stalls',
+    visitors: '3K+ Visitors',
+    imageUrl:
+      'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=600&q=70',
+    emoji: '🍔',
+  },
+  {
+    day: '08',
+    month: 'JUN',
+    title: 'Noida Art & Crafts Expo',
+    venue: 'Noida Stadium, Noida',
+    dateRange: '08 – 10 Jun 2024',
+    stalls: '80 Stalls',
+    visitors: '4K+ Visitors',
+    imageUrl:
+      'https://images.unsplash.com/photo-1513151233558-d860c5398176?auto=format&fit=crop&w=600&q=70',
+    emoji: '🎨',
+  },
+  {
+    day: '22',
+    month: 'JUN',
+    title: 'Corporate Connect Summit 2024',
+    venue: 'Leela Ambience, Gurgaon',
+    dateRange: '22 – 23 Jun 2024',
+    stalls: '120 Stalls',
+    visitors: '2.5K+ Visitors',
+    imageUrl:
+      'https://images.unsplash.com/photo-1540575467063-178a50c2df87?auto=format&fit=crop&w=600&q=70',
+    emoji: '🤝',
+  },
+  {
+    day: '14',
+    month: 'JUL',
+    title: 'Kids Carnival Summer Edition',
+    venue: 'Leisure Valley Park, Gurgaon',
+    dateRange: '14 – 16 Jul 2024',
+    stalls: '40 Stalls',
+    visitors: '2K+ Visitors',
+    imageUrl:
+      'https://images.unsplash.com/photo-1530103862676-de8c9debad1d?auto=format&fit=crop&w=600&q=70',
+    emoji: '🎡',
+  },
+];
+
+function FeaturedEvents() {
+  return (
+    <section id="featured-events" className="bg-cream-50 py-14 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-[24px] font-extrabold tracking-tight text-navy-800 sm:text-[28px]">
+              Featured Events
+            </h2>
+            <p className="mt-1 text-sm text-ink-500">
+              Upcoming fairs, expos and markets — book your stall now.
+            </p>
+          </div>
+          <Link
+            href="/events"
+            className="text-sm font-extrabold text-brand-purple hover:underline"
+          >
+            View All Events →
+          </Link>
+        </div>
+
+        <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {EVENTS.map((e) => (
+            <EventCard key={e.title} event={e} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function EventCard({ event }: { event: ShowcaseEvent }) {
+  return (
+    <article className="flex flex-col overflow-hidden rounded-2xl border border-black/[0.06] bg-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-card-hover">
+      <div className="relative h-36 w-full overflow-hidden">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={event.imageUrl}
+          alt={event.title}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+        <div className="absolute left-3 top-3 flex h-12 w-12 flex-col items-center justify-center rounded-xl bg-white text-navy-800 shadow-soft">
+          <div className="text-[15px] font-extrabold leading-none">{event.day}</div>
+          <div className="text-[9px] font-bold tracking-wider text-brand-purple">
+            {event.month}
+          </div>
+        </div>
+      </div>
+      <div className="flex flex-1 flex-col p-3">
+        <h3 className="line-clamp-2 text-[13px] font-extrabold leading-tight text-navy-800">
+          {event.title}
+        </h3>
+        <p className="mt-1 line-clamp-1 text-[11px] text-ink-500">
+          📍 {event.venue}
+        </p>
+        <p className="mt-1 text-[11px] text-ink-500">📅 {event.dateRange}</p>
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10.5px] font-semibold">
+          <span className="text-navy-800">{event.stalls}</span>
+          <span className="text-ink-300">·</span>
+          <span className="text-emerald-600">{event.visitors}</span>
+        </div>
+        <Link
+          href="/events"
+          className="mt-2.5 inline-flex items-center justify-center rounded-lg border border-brand-purple/40 bg-white py-1.5 text-[11px] font-extrabold text-brand-purple transition hover:bg-brand-purple/5"
+        >
+          Book Stall
+        </Link>
+      </div>
+    </article>
+  );
+}
+
+// =============================================================
+// TOP RATED STALLS — 5 stall-owner cards with rating + From-price.
+// =============================================================
+type ShowcaseStall = {
+  name: string;
+  category: string;
+  rating: number;
+  reviewCount: number;
+  fromPrice: number;
+  imageUrl: string;
+  emoji: string;
+};
+
+const STALLS: ShowcaseStall[] = [
+  {
+    name: 'The Handmade Store',
+    category: 'Home Decor',
+    rating: 4.8,
+    reviewCount: 128,
+    fromPrice: 5999,
+    imageUrl:
+      'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?auto=format&fit=crop&w=500&q=70',
+    emoji: '🏺',
+  },
+  {
+    name: 'Tasty Bites',
+    category: 'Food & Beverages',
+    rating: 4.7,
+    reviewCount: 95,
+    fromPrice: 6499,
+    imageUrl:
+      'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=70',
+    emoji: '🍱',
+  },
+  {
+    name: 'Trendy Threads',
+    category: 'Fashion & Clothing',
+    rating: 4.9,
+    reviewCount: 76,
+    fromPrice: 6999,
+    imageUrl:
+      'https://images.unsplash.com/photo-1567401893414-76b7b1e5a7a5?auto=format&fit=crop&w=500&q=70',
+    emoji: '👗',
+  },
+  {
+    name: 'Green Corner',
+    category: 'Plants & Gardening',
+    rating: 4.6,
+    reviewCount: 64,
+    fromPrice: 4999,
+    imageUrl:
+      'https://images.unsplash.com/photo-1485955900006-10f4d324d411?auto=format&fit=crop&w=500&q=70',
+    emoji: '🪴',
+  },
+  {
+    name: 'Bookish World',
+    category: 'Books & Stationery',
+    rating: 4.7,
+    reviewCount: 45,
+    fromPrice: 3499,
+    imageUrl:
+      'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&w=500&q=70',
+    emoji: '📚',
+  },
+];
+
+function TopRatedStalls() {
+  return (
+    <section id="top-rated" className="bg-white py-14 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-[24px] font-extrabold tracking-tight text-navy-800 sm:text-[28px]">
+              Top Rated Stalls &amp; Businesses
+            </h2>
+            <p className="mt-1 text-sm text-ink-500">
+              Trusted by event organisers across India.
+            </p>
+          </div>
+          <Link
+            href="/dashboard/people"
+            className="text-sm font-extrabold text-brand-purple hover:underline"
+          >
+            View All Stalls →
+          </Link>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5 lg:gap-4">
+          {STALLS.map((s) => (
+            <StallCard key={s.name} stall={s} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function StallCard({ stall }: { stall: ShowcaseStall }) {
+  return (
+    <article className="flex flex-col overflow-hidden rounded-xl border border-black/[0.06] bg-white shadow-soft transition hover:-translate-y-0.5 hover:shadow-card-hover">
+      <div className="relative aspect-square w-full overflow-hidden bg-cream-200">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={stall.imageUrl}
+          alt={stall.name}
+          loading="lazy"
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+        <span className="absolute left-2 top-2 inline-flex items-center gap-0.5 rounded-md bg-white/95 px-1.5 py-0.5 text-[10px] font-extrabold text-amber-500 shadow-soft backdrop-blur">
+          ★ {stall.rating.toFixed(1)}
+        </span>
+      </div>
+      <div className="flex flex-1 flex-col p-3">
+        <h3 className="line-clamp-1 text-[13px] font-extrabold text-navy-800">
+          {stall.name}
+        </h3>
+        <p className="mt-0.5 text-[11px] text-ink-500">{stall.category}</p>
+        <p className="mt-1 text-[10.5px] font-semibold text-ink-400">
+          {stall.reviewCount} reviews
+        </p>
+        <div className="mt-1.5 text-[13px] font-extrabold text-brand-purple">
+          From ₹{stall.fromPrice.toLocaleString('en-IN')}
+        </div>
+      </div>
+    </article>
+  );
+}
+
+// =============================================================
+// BROWSE BY CITY — 6 city tiles.
+// =============================================================
+const CITIES = [
+  { name: 'Delhi NCR', count: '320+ Events', emoji: '🏛️' },
+  { name: 'Mumbai', count: '210+ Events', emoji: '🌊' },
+  { name: 'Bangalore', count: '190+ Events', emoji: '🌳' },
+  { name: 'Hyderabad', count: '150+ Events', emoji: '🕌' },
+  { name: 'Pune', count: '120+ Events', emoji: '🎓' },
+  { name: 'Kolkata', count: '110+ Events', emoji: '🚋' },
+] as const;
+
+function BrowseByCity() {
+  return (
+    <section id="cities" className="bg-cream-50 py-14 sm:py-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-[24px] font-extrabold tracking-tight text-navy-800 sm:text-[28px]">
+              Browse Events by City
+            </h2>
+            <p className="mt-1 text-sm text-ink-500">
+              From metros to tier-2 — events near you.
+            </p>
+          </div>
+          <Link
+            href="/events"
+            className="text-sm font-extrabold text-brand-purple hover:underline"
+          >
+            View All Locations →
+          </Link>
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+          {CITIES.map((c) => (
+            <Link
+              key={c.name}
+              href={`/events?city=${encodeURIComponent(c.name)}`}
+              className="group flex flex-col items-center gap-2 rounded-2xl border border-black/[0.06] bg-white p-5 text-center shadow-soft transition hover:-translate-y-0.5 hover:border-brand-purple/30 hover:shadow-card-hover"
+            >
+              <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-purple/10 text-3xl ring-1 ring-brand-purple/10">
+                {c.emoji}
+              </span>
+              <div>
+                <div className="text-[13px] font-extrabold text-navy-800">
+                  {c.name}
+                </div>
+                <div className="mt-0.5 text-[11px] font-semibold text-brand-purple">
+                  {c.count}
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
 
