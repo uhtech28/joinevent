@@ -12,7 +12,6 @@ export default function HomePage() {
       <TopNav />
       <main>
         <Hero />
-        <StatsStrip />
         <FeaturedEvents />
         <FeaturedProducts />
         <TopRatedStalls />
@@ -370,38 +369,6 @@ function PhoneMock() {
         </div>
       </div>
     </div>
-  );
-}
-
-// =============================================================
-// STATS STRIP — four big numbers across a purple-tinted band.
-// Builds trust right after the hero CTAs.
-// =============================================================
-const STATS = [
-  { value: '1,250+', label: 'Events' },
-  { value: '8,500+', label: 'Stalls Booked' },
-  { value: '2,300+', label: 'Organisers' },
-  { value: '25,000+', label: 'Businesses' },
-] as const;
-
-function StatsStrip() {
-  return (
-    <section className="bg-cream-50 pb-2 pt-10 sm:pt-12">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-2 gap-4 rounded-3xl border border-black/[0.06] bg-white p-6 shadow-soft sm:grid-cols-4 sm:p-8">
-          {STATS.map((s) => (
-            <div key={s.label} className="text-center">
-              <div className="text-[24px] font-extrabold tracking-tight text-brand-purple sm:text-[32px]">
-                {s.value}
-              </div>
-              <div className="mt-1 text-[12px] font-bold uppercase tracking-wider text-ink-500 sm:text-[13px]">
-                {s.label}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
   );
 }
 
