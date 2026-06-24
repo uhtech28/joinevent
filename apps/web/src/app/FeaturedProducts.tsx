@@ -78,7 +78,7 @@ export function FeaturedProducts() {
             </p>
           </div>
           <Link
-            href="/dashboard/marketplace"
+            href="/login"
             className="text-sm font-extrabold text-brand-purple hover:underline"
           >
             View All Products →
@@ -136,7 +136,7 @@ function ProductCard({ product }: { product: Showcase }) {
           </span>
         </div>
         <Link
-          href="/dashboard/marketplace"
+          href="/login"
           className="mt-2.5 inline-flex items-center justify-center rounded-lg border border-brand-purple/40 bg-white py-1.5 text-[11px] font-extrabold text-brand-purple transition hover:bg-brand-purple/5"
         >
           View

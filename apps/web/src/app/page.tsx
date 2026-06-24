@@ -46,7 +46,7 @@ function TopNav() {
         <nav className="hidden items-center gap-7 text-sm font-semibold text-navy-700 lg:flex">
           <NavLink href="#for-organisers">For Organisers</NavLink>
           <NavLink href="#for-businesses">For Businesses</NavLink>
-          <NavLink href="/events">Events</NavLink>
+          <NavLink href="/login">Events</NavLink>
           <NavLink href="#how-it-works">How It Works</NavLink>
           <NavLink href="#pricing">Pricing</NavLink>
         </nav>
@@ -135,7 +135,7 @@ function Hero() {
               Get Started <ArrowIcon className="h-4 w-4" />
             </Link>
             <Link
-              href="/events"
+              href="/login"
               className="inline-flex h-12 items-center gap-2 rounded-2xl border-2 border-brand-purple/40 bg-white px-6 text-sm font-extrabold text-brand-purple transition hover:bg-brand-purple/5"
             >
               Explore Events <ArrowIcon className="h-4 w-4" />
@@ -452,7 +452,7 @@ function FeaturedEvents() {
             </p>
           </div>
           <Link
-            href="/events"
+            href="/login"
             className="text-sm font-extrabold text-brand-purple hover:underline"
           >
             View All Events →
@@ -502,7 +502,7 @@ function EventCard({ event }: { event: ShowcaseEvent }) {
           <span className="text-emerald-600">{event.visitors}</span>
         </div>
         <Link
-          href="/events"
+          href="/login"
           className="mt-2.5 inline-flex items-center justify-center rounded-lg border border-brand-purple/40 bg-white py-1.5 text-[11px] font-extrabold text-brand-purple transition hover:bg-brand-purple/5"
         >
           Book Stall
@@ -592,7 +592,7 @@ function TopRatedStalls() {
             </p>
           </div>
           <Link
-            href="/dashboard/people"
+            href="/login"
             className="text-sm font-extrabold text-brand-purple hover:underline"
           >
             View All Stalls →
@@ -666,7 +666,7 @@ function BrowseByCity() {
             </p>
           </div>
           <Link
-            href="/events"
+            href="/login"
             className="text-sm font-extrabold text-brand-purple hover:underline"
           >
             View All Locations →
@@ -677,7 +677,7 @@ function BrowseByCity() {
           {CITIES.map((c) => (
             <Link
               key={c.name}
-              href={`/events?city=${encodeURIComponent(c.name)}`}
+              href="/login"
               className="group flex flex-col items-center gap-2 rounded-2xl border border-black/[0.06] bg-white p-5 text-center shadow-soft transition hover:-translate-y-0.5 hover:border-brand-purple/30 hover:shadow-card-hover"
             >
               <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-purple/10 text-3xl ring-1 ring-brand-purple/10">
