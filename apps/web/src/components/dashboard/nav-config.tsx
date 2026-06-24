@@ -19,6 +19,8 @@ export const NAV: NavItem[] = [
   { href: '/dashboard/feed', label: 'Feed', icon: ChatBubbleIcon, roles: ['user'] },
   // User: profile discovery (search organisers / vendors)
   { href: '/dashboard/people', label: 'Explore', icon: UsersIcon, roles: ['user'] },
+  // User: browse all stall-owner products across the platform.
+  { href: '/dashboard/marketplace', label: 'Marketplace', icon: StoreIcon, roles: ['user'] },
   // Organiser-only: event management
   { href: '/dashboard/events', label: 'Events', icon: CalendarIcon, roles: ['organiser'] },
   // Vendor + user: browse public events

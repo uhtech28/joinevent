@@ -651,6 +651,20 @@ export type PublicProduct = {
   createdAt: string;
 };
 
+export type MarketplaceProduct = PublicProduct & {
+  seller: {
+    username: string;
+    displayName: string;
+    avatarUrl: string | null;
+    verified: boolean;
+  };
+};
+
+export type MarketplacePage = {
+  items: MarketplaceProduct[];
+  nextCursor: string | null;
+};
+
 export type CreateProductBody = {
   name: string;
   description?: string | null;
@@ -943,6 +957,14 @@ export const api = {
   products: {
     listForUsername: (username: string) =>
       call<PublicProduct[]>(`/products/by-username/${encodeURIComponent(username)}`),
+    discover: (params: { cursor?: string; limit?: number; category?: string } = {}) => {
+      const q = new URLSearchParams();
+      if (params.cursor) q.set('cursor', params.cursor);
+      if (params.limit) q.set('limit', String(params.limit));
+      if (params.category) q.set('category', params.category);
+      const s = q.toString();
+      return call<MarketplacePage>(`/products/discover${s ? `?${s}` : ''}`);
+    },
     mine: () => call<PublicProduct[]>('/products/mine', {}, /* withAuth */ true),
     get: (id: string) => call<PublicProduct>(`/products/${encodeURIComponent(id)}`),
     create: (body: CreateProductBody) =>

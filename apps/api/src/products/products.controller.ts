@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
@@ -27,6 +28,21 @@ export class ProductsController {
   @Get('by-username/:username')
   byUsername(@Param('username') username: string): Promise<PublicProduct[]> {
     return this.products.listForUsername(username);
+  }
+
+  // GET /api/v1/products/discover — public marketplace browse.
+  // Query: ?cursor=<id>&limit=<n>&category=<text>
+  @Get('discover')
+  discover(
+    @Query('cursor') cursor?: string,
+    @Query('limit') limit?: string,
+    @Query('category') category?: string,
+  ) {
+    return this.products.discover(
+      cursor,
+      limit ? Number(limit) : undefined,
+      category,
+    );
   }
 
   // GET /api/v1/products/mine — vendor's own products (incl. inactive).

@@ -74,6 +74,70 @@ export class ProductsService {
     return rows.map((r) => this.toPublic(r));
   }
 
+  // ----------------------------------------------------------------
+  // Marketplace browse — all active products across all stall-owner
+  // profiles. Members see this on /dashboard/marketplace.
+  // ----------------------------------------------------------------
+  async discover(
+    cursor?: string,
+    limit = 24,
+    category?: string,
+  ): Promise<{
+    items: Array<
+      PublicProduct & {
+        seller: {
+          username: string;
+          displayName: string;
+          avatarUrl: string | null;
+          verified: boolean;
+        };
+      }
+    >;
+    nextCursor: string | null;
+  }> {
+    const take = Math.min(Math.max(limit, 1), 60);
+    const where: {
+      isActive: boolean;
+      category?: { equals: string; mode: 'insensitive' };
+    } = { isActive: true };
+    if (category && category.trim()) {
+      where.category = { equals: category.trim(), mode: 'insensitive' };
+    }
+    const rows = await this.db.product.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: take + 1,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
+      include: {
+        profile: {
+          select: {
+            username: true,
+            displayName: true,
+            avatarUrl: true,
+            verified: true,
+            type: true,
+          },
+        },
+      },
+    });
+    // Drop any profile that's somehow not a vendor (defensive).
+    const filtered = rows.filter((r) => r.profile.type === 'vendor');
+    const hasMore = filtered.length > take;
+    const slice = hasMore ? filtered.slice(0, take) : filtered;
+    return {
+      items: slice.map((r) => ({
+        ...this.toPublic(r),
+        seller: {
+          username: r.profile.username,
+          displayName: r.profile.displayName,
+          avatarUrl: r.profile.avatarUrl,
+          verified: r.profile.verified,
+        },
+      })),
+      nextCursor: hasMore ? slice[slice.length - 1].id : null,
+    };
+  }
+
   async findById(id: string): Promise<PublicProduct> {
     const row = await this.db.product.findUnique({ where: { id } });
     if (!row) throw new NotFoundException(`Product ${id} not found`);
